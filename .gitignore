@@ -1,0 +1,6 @@
+build*/
+install/
+*.user
+*.orig
+*.rej
+.vscode/
