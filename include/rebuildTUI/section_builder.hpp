@@ -65,17 +65,17 @@ public:
   }
 
   SectionBuilder &add_items(const std::vector<std::string> &names) {
-    for (const auto &name : names) {
+    for (const auto &name : names)
       items_.emplace_back(name);
-    }
+
     return *this;
   }
 
   SectionBuilder &
   add_items(const std::vector<std::pair<std::string, std::string>> &items) {
-    for (const auto &[name, desc] : items) {
+    for (const auto &[name, desc] : items)
       items_.emplace_back(name, desc);
-    }
+
     return *this;
   }
 
@@ -95,9 +95,9 @@ public:
   SectionBuilder &
   add_generated_items(size_t count,
                       std::function<std::string(size_t)> generator) {
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i)
       items_.emplace_back(generator(i));
-    }
+
     return *this;
   }
 
@@ -134,9 +134,9 @@ public:
             std::function<void(size_t, bool)> toggle_cb = nullptr) {
     on_enter_ = std::move(enter_cb);
     on_exit_ = std::move(exit_cb);
-    if (toggle_cb) {
+    if (toggle_cb)
       on_item_toggled_ = std::move(toggle_cb);
-    }
+
     return *this;
   }
 
@@ -152,9 +152,9 @@ public:
       auto it = std::find_if(
           items_.begin(), items_.end(),
           [&name](const SelectableItem &item) { return item.name == name; });
-      if (it != items_.end()) {
+      if (it != items_.end())
         it->selected = true;
-      }
+
     }
     return *this;
   }
@@ -270,17 +270,17 @@ public:
   }
 
   MultiSectionBuilder &add_sections(const std::vector<std::string> &names) {
-    for (const auto &name : names) {
+    for (const auto &name : names)
       sections_.emplace_back(name);
-    }
+
     return *this;
   }
 
   MultiSectionBuilder &
   apply_to_all(std::function<void(Section &)> configurator) {
-    for (auto &section : sections_) {
+    for (auto &section : sections_)
       configurator(section);
-    }
+
     return *this;
   }
 
