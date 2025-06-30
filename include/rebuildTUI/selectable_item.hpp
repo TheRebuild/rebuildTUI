@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <format>
 #include <functional>
 #include <string>
 
@@ -70,7 +71,7 @@ struct SelectableItem {
   std::string get_display_string(char selected_char = '*',
                                  char unselected_char = ' ') const {
     char indicator = selected ? selected_char : unselected_char;
-    return std::string(1, indicator) + " " + name;
+    return std::format("{} {}", std::string(1, indicator), name);
   }
 
   std::string get_display_string(const std::string &selected_prefix,
@@ -80,7 +81,8 @@ struct SelectableItem {
   }
 
   std::string get_full_description() const {
-    return (!description.empty()) ? name + " - " + description : name;
+    return (!description.empty()) ? std::format("{} - {}", name, description)
+                                  : name;
   }
 
   bool has_user_data() const { return user_data.has_value(); }
