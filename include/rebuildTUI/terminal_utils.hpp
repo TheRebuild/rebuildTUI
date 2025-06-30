@@ -170,9 +170,8 @@ private:
 public:
   TerminalManager() : terminal_initialized_(false) {}
   ~TerminalManager() {
-    if (terminal_initialized_) {
+    if (terminal_initialized_)
       restore_terminal();
-    }
   }
 
   void setup_terminal() {
