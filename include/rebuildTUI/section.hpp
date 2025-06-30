@@ -66,9 +66,8 @@ public:
     items.insert(items.end(), new_items.begin(), new_items.end());
   }
   void add_items(const std::vector<std::string> &names) {
-    for (const auto &name : names) {
+    for (const auto &name : names)
       add_item(name);
-    }
   }
 
   size_t size() const { return items.size(); }
@@ -76,15 +75,15 @@ public:
   bool empty() const { return items.empty(); }
 
   SelectableItem *get_item(size_t index) {
-    if (index < items.size()) {
+    if (index < items.size())
       return &items[index];
-    }
+
     return nullptr;
   }
   const SelectableItem *get_item(size_t index) const {
-    if (index < items.size()) {
+    if (index < items.size())
       return &items[index];
-    }
+
     return nullptr;
   }
 
@@ -155,9 +154,8 @@ public:
     for (size_t i = 0; i < items.size(); ++i) {
       if (items[i].selected) {
         items[i].set_selected(false);
-        if (on_item_toggled) {
+        if (on_item_toggled)
           on_item_toggled(i, false);
-        }
       }
     }
   }
@@ -181,7 +179,8 @@ public:
   }
 
   std::string get_display_string() const {
-    return (!description.empty()) ? name + " - " + description : name;
+    return (!description.empty()) ? std::format("{} - {}", name, description)
+                                  : name;
   }
 
   std::string get_display_string_with_count() const {
@@ -228,11 +227,8 @@ public:
     std::sort(
         items.begin(), items.end(),
         [selected_first](const SelectableItem &a, const SelectableItem &b) {
-          if (selected_first) {
-            return a.selected && !b.selected;
-          } else {
-            return !a.selected && b.selected;
-          }
+          return selected_first ? a.selected && !b.selected
+                                : !a.selected && b.selected;
         });
   }
 
