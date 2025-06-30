@@ -517,11 +517,16 @@ int NavigationTUI::get_effective_content_width(int term_width) const {
 
 int NavigationTUI::get_effective_content_height() const {
   int content_height = 0;
+  
+  /*
+   * TODO: since this crazy bullshit isn't working when horizontal layout centering is enabled,
+   * I need to review this code
+   */
 
-  if (current_state_ == NavigationState::SECTION_SELECTION) {
+  if (current_state_ == NavigationState::SECTION_SELECTION)
     content_height = 3 + sections_.size() + 2;
-  } else if (current_section_index_ < sections_.size()) {
-    const auto &section = sections_[current_section_index_];
+  else if (current_section_index_ < sections_.size()) {
+    [[maybe_unused]] const auto &section = sections_[current_section_index_];
 
     auto bounds = get_current_page_bounds();
     content_height = 3 + (bounds.second - bounds.first) + 2;
@@ -621,7 +626,7 @@ void NavigationTUI::render() {
 //   render_footer();
 // }
 
-void NavigationTUI::render_header(int term_width, int content_width,
+void NavigationTUI::render_header(int /*term_width*/, int content_width,
                                   const std::string &title) {
   std::string centered_title = center_string(title, content_width);
   std::string separator =
