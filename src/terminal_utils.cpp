@@ -1,6 +1,9 @@
 #include "terminal_utils.hpp"
 #include <algorithm>
+#include <asm-generic/ioctls.h>
 #include <iostream>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 namespace tui {
 
@@ -95,10 +98,15 @@ std::pair<int, int> TerminalUtils::get_terminal_size() {
   return {25, 80}; // Default fallback
 #else
   struct winsize w;
-  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
-    return {w.ws_row, w.ws_col};
-  }
-  return {25, 80}; // Default fallback
+  // if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+  //   return {w.ws_row, w.ws_col};
+  // }
+  // return {25, 80}; // Default fallback
+
+  return (static_cast<bool>(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0))
+             ? std::make_pair(static_cast<int>(w.ws_row),
+                              static_cast<int>(w.ws_col))
+             : std::make_pair(25, 80);
 #endif
 }
 
@@ -163,11 +171,9 @@ void TerminalUtils::set_color(Color color) {
     SetConsoleTextAttribute(hConsole, attributes);
   }
 #else
-  if (color != Color::RESET) {
-    std::cout << "\033[" << static_cast<int>(color) << "m";
-  } else {
-    std::cout << "\033[0m";
-  }
+  std::cout << std::format(
+      "\033[{}m", (color == Color::RESET) ? 0 : static_cast<int>(color));
+
   flush();
 #endif
 }
@@ -193,16 +199,16 @@ void TerminalUtils::set_style(Style style) {
     }
   }
 #else
-  std::cout << "\033[" << static_cast<int>(style) << "m";
+  std::cout << std::format("\033[{}m", static_cast<int>(style));
+  // std::cout << "\033[" << static_cast<int>(style) << "m";
   flush();
 #endif
 }
 
 void TerminalUtils::reset_formatting() {
 #ifdef _WIN32
-  if (hConsole != INVALID_HANDLE_VALUE) {
+  if (hConsole != INVALID_HANDLE_VALUE)
     SetConsoleTextAttribute(hConsole, csbi.wAttributes);
-  }
 #else
   std::cout << "\033[0m";
   flush();
@@ -258,79 +264,21 @@ bool TerminalUtils::key_available() {
 #endif
 }
 
-std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
-  unsigned char buf[3] = {0};
-  int n = read(STDIN_FILENO, buf, 1);
-  if (n <= 0)
-    return {Key::UNKNOWN, 0};
-
-  if (buf[0] == 27) {
-    n = read(STDIN_FILENO, buf + 1, 2);
-    std::cout << "n: " << n << std::endl;
-    if (n == 1) {
-      return {Key::ESCAPE, 0};
-    }
-    if (buf[1] == '[') {
-      switch (buf[2]) {
-      case 'A':
-        return {Key::ARROW_UP, 0};
-      case 'B':
-        return {Key::ARROW_DOWN, 0};
-      case 'C':
-        return {Key::ARROW_RIGHT, 0};
-      case 'D':
-        return {Key::ARROW_LEFT, 0};
-      case 'H':
-        return {Key::HOME, 0};
-      case 'F':
-        return {Key::END, 0};
-      case '5':
-        read(STDIN_FILENO, buf, 1);
-        return {Key::PAGE_UP, 0};
-      case '6':
-        read(STDIN_FILENO, buf, 1);
-        return {Key::PAGE_DOWN, 0};
-      case '3':
-        read(STDIN_FILENO, buf, 1);
-        return {Key::DELETE, 0};
-      default:
-        return {Key::UNKNOWN, 0};
-      }
-    }
-    return {Key::UNKNOWN, 0};
-  }
-
-  switch (buf[0]) {
-  case '\n':
-  case '\r':
-    return {Key::ENTER, 0};
-  case ' ':
-    return {Key::SPACE, 0};
-  case '\t':
-    return {Key::TAB, 0};
-  case 8:
-  case 127:
-    return {Key::BACKSPACE, 0};
-  case 3:
-    return {Key::ESCAPE, 0};
-  default:
-    if (buf[0] >= 32 && buf[0] <= 126)
-      return {Key::UNKNOWN, static_cast<char>(buf[0])};
-    return {Key::UNKNOWN, 0};
-  }
-}
-
 // std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
-//   int ch = get_key();
-//   if (ch == 27) {
-//     int ch1 = get_key();
-//     std::cout << "ch1: " << ch1 << std::endl;
-//     if (ch1 == 27) {
+//   unsigned char buf[3] = {0};
+//   int n = read(STDIN_FILENO, buf, 1);
+//   if (n <= 0)
+//     return {Key::UNKNOWN, 0};
+
+//   if (buf[0] == 27) {
+//     n = read(STDIN_FILENO, buf + 1, 2);
+// #ifdef DEBUG_BUILD
+//     std::cout << "n: " << n << std::endl;
+// #endif
+//     if (n == 1)
 //       return {Key::ESCAPE, 0};
-//     }
-//     if (ch1 == '[' || ch1 == 'O') {
-//       int ch2 = get_key();
-//       switch (ch2) {
+//     else if (buf[1] == '[') {
+//       switch (buf[2]) {
 //       case 'A':
 //         return {Key::ARROW_UP, 0};
 //       case 'B':
@@ -344,13 +292,13 @@ std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
 //       case 'F':
 //         return {Key::END, 0};
 //       case '5':
-//         get_key();
+//         read(STDIN_FILENO, buf, 1);
 //         return {Key::PAGE_UP, 0};
 //       case '6':
-//         get_key();
+//         read(STDIN_FILENO, buf, 1);
 //         return {Key::PAGE_DOWN, 0};
 //       case '3':
-//         get_key();
+//         read(STDIN_FILENO, buf, 1);
 //         return {Key::DELETE, 0};
 //       default:
 //         return {Key::UNKNOWN, 0};
@@ -359,7 +307,7 @@ std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
 //     return {Key::UNKNOWN, 0};
 //   }
 
-//   switch (ch) {
+//   switch (buf[0]) {
 //   case '\n':
 //   case '\r':
 //     return {Key::ENTER, 0};
@@ -372,38 +320,96 @@ std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
 //     return {Key::BACKSPACE, 0};
 //   case 3:
 //     return {Key::ESCAPE, 0};
-// #ifdef _WIN32
-//   case 224:
-//     ch = get_key();
-//     switch (ch) {
-//     case 72:
-//       return {Key::ARROW_UP, 0};
-//     case 80:
-//       return {Key::ARROW_DOWN, 0};
-//     case 75:
-//       return {Key::ARROW_LEFT, 0};
-//     case 77:
-//       return {Key::ARROW_RIGHT, 0};
-//     case 71:
-//       return {Key::HOME, 0};
-//     case 79:
-//       return {Key::END, 0};
-//     case 73:
-//       return {Key::PAGE_UP, 0};
-//     case 81:
-//       return {Key::PAGE_DOWN, 0};
-//     case 83:
-//       return {Key::DELETE, 0};
-//     default:
-//       return {Key::UNKNOWN, 0};
-//     }
-// #endif
 //   default:
-//     if (ch >= 32 && ch <= 126)
-//       return {Key::UNKNOWN, static_cast<char>(ch)};
-//     return {Key::UNKNOWN, 0};
+//     return {Key::UNKNOWN,
+//             (buf[0] >= 32 && buf[0] <= 126) ? static_cast<char>(buf[0]) : 0};
 //   }
 // }
+
+std::pair<TerminalUtils::Key, char> TerminalUtils::get_input() {
+  int ch = get_key();
+  if (ch == 27) {
+    int ch1 = get_key();
+    if (ch1 == 27)
+      return {Key::ESCAPE, 0};
+
+    if (ch1 == '[' || ch1 == 'O') {
+      int ch2 = get_key();
+      switch (ch2) {
+      case 'A':
+        return {Key::ARROW_UP, 0};
+      case 'B':
+        return {Key::ARROW_DOWN, 0};
+      case 'C':
+        return {Key::ARROW_RIGHT, 0};
+      case 'D':
+        return {Key::ARROW_LEFT, 0};
+      case 'H':
+        return {Key::HOME, 0};
+      case 'F':
+        return {Key::END, 0};
+      case '5':
+        get_key();
+        return {Key::PAGE_UP, 0};
+      case '6':
+        get_key();
+        return {Key::PAGE_DOWN, 0};
+      case '3':
+        get_key();
+        return {Key::DELETE, 0};
+      default:
+        return {Key::UNKNOWN, 0};
+      }
+    }
+    return {Key::UNKNOWN, 0};
+  }
+
+  switch (ch) {
+  case '\n':
+  case '\r':
+    return {Key::ENTER, 0};
+  case ' ':
+    return {Key::SPACE, 0};
+  case '\t':
+    return {Key::TAB, 0};
+  case 8:
+  case 127:
+    return {Key::BACKSPACE, 0};
+  case 3:
+    return {Key::ESCAPE, 0};
+#ifdef _WIN32
+  case 224:
+    ch = get_key();
+    switch (ch) {
+    case 72:
+      return {Key::ARROW_UP, 0};
+    case 80:
+      return {Key::ARROW_DOWN, 0};
+    case 75:
+      return {Key::ARROW_LEFT, 0};
+    case 77:
+      return {Key::ARROW_RIGHT, 0};
+    case 71:
+      return {Key::HOME, 0};
+    case 79:
+      return {Key::END, 0};
+    case 73:
+      return {Key::PAGE_UP, 0};
+    case 81:
+      return {Key::PAGE_DOWN, 0};
+    case 83:
+      return {Key::DELETE, 0};
+    default:
+      return {Key::UNKNOWN, 0};
+    }
+#endif
+  default:
+    // if (ch >= 32 && ch <= 126)
+    //   return {Key::UNKNOWN, static_cast<char>(ch)};
+    // return {Key::UNKNOWN, 0};
+    return {Key::UNKNOWN, (ch >= 32 && ch <= 126) ? static_cast<char>(ch) : 0};
+  }
+}
 
 TerminalUtils::Key TerminalUtils::parse_escape_sequence() {
 #ifndef _WIN32
@@ -434,9 +440,9 @@ TerminalUtils::Key TerminalUtils::parse_escape_sequence() {
 void TerminalUtils::draw_horizontal_line(int row, int start_col, int length,
                                          char ch) {
   move_cursor(row, start_col);
-  for (int i = 0; i < length; ++i) {
+  for (int i = 0; i < length; ++i)
     std::cout << ch;
-  }
+
   flush();
 }
 
@@ -446,6 +452,7 @@ void TerminalUtils::draw_vertical_line(int start_row, int col, int length,
     move_cursor(start_row + i, col);
     std::cout << ch;
   }
+
   flush();
 }
 
@@ -453,9 +460,9 @@ void TerminalUtils::draw_box(int top_row, int left_col, int width, int height) {
   // Top border
   move_cursor(top_row, left_col);
   std::cout << '+';
-  for (int i = 1; i < width - 1; ++i) {
+  for (int i = 1; i < width - 1; ++i)
     std::cout << '-';
-  }
+
   std::cout << '+';
 
   // Side borders
@@ -482,9 +489,9 @@ void TerminalUtils::print_centered(const std::string &text, int width,
   int padding = (width - static_cast<int>(text.length())) / 2;
   std::string padded_text = std::string(std::max(0, padding), ' ') + text;
 
-  if (row >= 0) {
+  if (row >= 0)
     move_cursor(row, 1);
-  }
+
   std::cout << padded_text;
   flush();
 }
@@ -522,21 +529,14 @@ void TerminalUtils::set_echo(bool enable) {
   if (hConsole != INVALID_HANDLE_VALUE) {
     DWORD mode;
     GetConsoleMode(hConsole, &mode);
-    if (enable) {
-      mode |= ENABLE_ECHO_INPUT;
-    } else {
-      mode &= ~ENABLE_ECHO_INPUT;
-    }
+    mode = enable ? mode | ENABLE_ECHO_INPUT : mode & ~ENABLE_ECHO_INPUT;
     SetConsoleMode(hConsole, mode);
   }
 #else
   if (termios_saved) {
     struct termios new_termios = original_termios;
-    if (enable) {
-      new_termios.c_lflag |= ECHO;
-    } else {
-      new_termios.c_lflag &= ~ECHO;
-    }
+    new_termios.c_lflag =
+        enable ? new_termios.c_lflag | ECHO : new_termios.c_lflag & ~ECHO;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
   }
 #endif
@@ -547,21 +547,14 @@ void TerminalUtils::set_canonical_mode(bool enable) {
   if (hConsole != INVALID_HANDLE_VALUE) {
     DWORD mode;
     GetConsoleMode(hConsole, &mode);
-    if (enable) {
-      mode |= ENABLE_LINE_INPUT;
-    } else {
-      mode &= ~ENABLE_LINE_INPUT;
-    }
+    mode = enable ? mode | ENABLE_LINE_INPUT : mode & ~ENABLE_LINE_INPUT;
     SetConsoleMode(hConsole, mode);
   }
 #else
   if (termios_saved) {
     struct termios new_termios = original_termios;
-    if (enable) {
-      new_termios.c_lflag |= ICANON;
-    } else {
-      new_termios.c_lflag &= ~ICANON;
-    }
+    new_termios.c_lflag =
+        enable ? new_termios.c_lflag | ICANON : new_termios.c_lflag & ~ICANON;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
   }
 #endif
