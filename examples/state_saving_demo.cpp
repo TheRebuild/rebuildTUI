@@ -1,50 +1,61 @@
-#include <navigation_tui.hpp>
 #include "section_builder.hpp"
 #include <fstream>
+#include <iostream>
+#include <navigation_tui.hpp>
+#include <vector>
 
 using namespace tui;
 
 // this is example of "saving state"
-void save_state(const std::vector<Section> &sections)
-{
-    std::ofstream file("config.ini");
-    for (const auto &section : sections)
-    {
-        file << "[" << section.name << "]\n";
-        for (const auto &item : section.items)
-        {
-            file << item.name << " = " << (item.selected ? "true" : "false") << "\n";
-        }
-    }
-    std::cout << "\nConfiguration saved to config.ini\n";
+void save_state(const std::vector<Section> &sections) {
+  std::ofstream file("config.ini");
+  if (!file.is_open()) {
+    std::cerr << "Error: Could not open config.ini for writing.\n";
+    return;
+  }
+
+  for (const auto &section : sections) {
+    file << "[" << section.name << "]\n";
+    for (const auto &item : section.items)
+      file << item.name << " = " << (item.selected ? "true" : "false") << "\n";
+  }
+  std::cout << "\nConfiguration saved to config.ini\n";
 }
 
-int main()
-{
-    auto settings = SectionBuilder("System Settings")
-                        .add_item("Dark Mode")
-                        .add_item("Auto Updates")
-                        .build();
+int main() {
 
-    auto privacy = SectionBuilder("Privacy")
-                       .add_item("Location Tracking")
-                       .add_item("Diagnostic Data")
-                       .build();
+  std::vector<Section> all_sections = {SectionBuilder("System Settings")
+                                           .add_item("Dark Mode")
+                                           .add_item("Auto Updates")
+                                           .build(),
+                                       SectionBuilder("Privacy")
+                                           .add_item("Location Tracking")
+                                           .add_item("Diagnostic Data")
+                                           .build()};
 
-    NavigationBuilder()
-        .add_sections({settings, privacy})
-        .on_exit([](const auto &sections)
-                 { save_state(sections); })
-        .keys_custom_shortcut('s', "Save configuration")
-        .on_custom_command([](char key, auto /*state*/)
-                           {
+  NavigationBuilder()
+      .add_sections(all_sections)
+      .on_exit(
+          [](const std::vector<Section> &sections) { save_state(sections); })
+      .on_item_toggled([&all_sections](size_t section_index, size_t item_index,
+                                       bool selected) {
+        if (section_index < all_sections.size() &&
+            item_index < all_sections[section_index].items.size())
+          all_sections[section_index].items[item_index].selected = selected;
+      })
+      .keys_custom_shortcut('s', "Save configuration")
+      .on_custom_command(
+          [&all_sections](char key,
+                          const tui::NavigationTUI::NavigationState &) {
             if (key == 's') {
-                std::cout << "\nSaving configuration...\n";
-                return true;
+              std::cout << "\nSaving configuration...\n";
+              save_state(all_sections);
+              return true;
             }
-            return false; })
-        .build()
-        ->run();
+            return false;
+          })
+      .build()
+      ->run();
 
-    return 0;
+  return 0;
 }

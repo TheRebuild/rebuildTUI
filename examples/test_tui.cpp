@@ -325,12 +325,7 @@ int main() {
 
     tui->run();
 
-    std::cout << "\n👋 Thanks for using the Universal Configuration System!\n";
-    std::cout
-        << "🌟 This modern approach replaces the old category/tweak system\n";
-    std::cout << "   with a flexible, universal solution for any configuration "
-                 "needs.\n";
-
+    // exit seems not working, need to investigate this issue later
     std::cout << "\nPress Enter to exit...\n" << std::endl;
 
     return 0;

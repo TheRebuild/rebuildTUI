@@ -4,3 +4,4 @@ install/
 *.orig
 *.rej
 .vscode/
+.cache
