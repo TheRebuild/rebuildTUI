@@ -33,27 +33,26 @@ public:
     std::string border_style =
         "rounded"; ///< Border style: "rounded", "sharp", "double"
     std::string accent_color = "cyan"; ///< Accent color for highlights
-    // std::string horizontal_fill = "─"; ///< Fill character for horizontal
-    // lines std::string vertical_fill = "│";   ///< Fill character for vertical
-    // lines bool fill_empty_space = true; ///< Whether to fill empty space with
-    // fill characters
   };
 
   /**
    * @brief Layout configuration
    */
   struct Layout {
+    // TODO: fix horizontal centering
     bool center_horizontally = false; ///< Center content horizontally on screen
     bool center_vertically = false;   ///< Center content vertically on screen
     int max_content_width = 80;       ///< Maximum width for content
     int min_content_width = 40;       ///< Minimum width for content
+
+    // TODO: implement vertical padding
     int vertical_padding = 2; ///< Padding from top/bottom when centering
     bool auto_resize_content =
         true;                 ///< Automatically resize content to fit terminal
+
+    // TODO: implement show_borders
     bool show_borders = true; ///< Whether to show borders around content
     int items_per_page = 20;  ///< Number of items to display per page
-    bool fill_background =
-        false; ///< Whether to fill background with fill characters
   };
 
   /**
@@ -226,13 +225,16 @@ public:
    * @brief Horizontal centering to text
    */
   std::string apply_centering(const std::string &text) const {
-    if (!config_.layout.center_horizontally)
+    // TODO: Implement horizontal centering logic
+    if (!config_.layout.center_horizontally) // oh fuck, oh fuck...
       return text;
 
     auto [height, width] = TerminalUtils::get_terminal_size();
     int padding = (width - text.length()) / 2;
+
     if (padding < 0)
       padding = 0;
+
     return std::string(padding, ' ') + text;
   }
 
@@ -428,19 +430,10 @@ public:
   NavigationBuilder &layout_fullscreen();
   NavigationBuilder &layout_centered();
 
-  /**
-   * @brief Build the NavigationTUI
-   */
   std::unique_ptr<NavigationTUI> build();
 
-  /**
-   * @brief Get current configuration for inspection
-   */
   const NavigationTUI::Config &get_config() const;
 
-  /**
-   * @brief Reset builder to default state
-   */
   NavigationBuilder &reset();
 };
 
