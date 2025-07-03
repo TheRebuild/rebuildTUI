@@ -29,7 +29,7 @@ Simple, cross-platform (should be) text-based user interface (TUI) library. Init
 
 ## Dependencies
 
-- Cmake 3.15+
+- Cmake 3.20+
 - С++20 and later
 
 ## Quick Start
