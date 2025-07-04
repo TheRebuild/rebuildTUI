@@ -256,7 +256,8 @@ namespace tui {
         /**
          * @brief Render footer with help text and page info
          */
-        void render_footer(int term_height, int left_padding, int content_width);
+        // void render_footer(int term_height, int left_padding, int content_width) const;
+        void render_footer(int term_height, int left_padding, int content_width, const SelectableItem *item);
 
         /**
          * @brief Handle input in section selection mode
@@ -317,10 +318,14 @@ namespace tui {
         // not impl
         // [[nodiscard]] std::string apply_theme_formatting(const std::string &text, const std::string &type) const;
 
+        struct FormattedText {
+            std::string content;
+            int line_count;
+        };
         /*
          * @brief Center a string within a given width
          */
-        [[nodiscard]] static std::string center_string(const std::string &text, int width) ;
+        [[nodiscard]] static FormattedText center_string(const std::string &text, int width);
     };
 
     /**
