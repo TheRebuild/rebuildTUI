@@ -30,15 +30,10 @@ int main() {
         .theme_prefixes("[X] ", "[ ] ") // Custom prefixes
 
         // currently placeholder
-        // i'll implement in the future
+        // I'll implement in the future
         .theme_colors(true)
         .theme_accent_color("blue")
 
-        /*
-         * It seems that layout_centering works only with vertical layout?
-         *
-         * Will fix this in the future
-         */
         .layout_centering(true, // horizontal layout
                           true) // vertical layout
         .layout_items_per_page(3)

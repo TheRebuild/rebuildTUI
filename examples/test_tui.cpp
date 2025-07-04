@@ -142,11 +142,6 @@ int main() {
                 // .theme_accent_color("#00ff48")
 
                 // Layout configuration
-                /*
-                 * It seems that layout_centering works only with vertical layout?
-                 *
-                 * Will fix this in the future
-                 */
                 .layout_centering(false, // horizontal
                                   true) // vertical
 
