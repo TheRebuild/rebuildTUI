@@ -100,6 +100,7 @@ cmake --build .
 
 #### CMake Integration
 
+##### Latest (development)
 ```cmake
 include(FetchContent)
 
@@ -115,6 +116,23 @@ FetchContent_MakeAvailable(rebuildtui)
 add_executable(example_app main.cpp)
 target_link_libraries(example_app PRIVATE rebuildTUI::rebuildTUI)
 ```
+
+##### Stable
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    rebuildtui
+    GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
+    GIT_TAG v0.0.4
+)
+
+FetchContent_MakeAvailable(rebuildtui)
+
+add_executable(example_app main.cpp)
+target_link_libraries(example_app PRIVATE rebuildTUI::rebuildTUI)
+```
+
 
 ## Examples
 
