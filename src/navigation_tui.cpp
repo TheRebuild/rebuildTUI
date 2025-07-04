@@ -269,7 +269,7 @@ namespace tui {
         handle_item_input(key, character);
     }
 
-    void NavigationTUI::handle_item_input(TerminalUtils::Key key, char character) {
+    void NavigationTUI::handle_item_input(const TerminalUtils::Key key, const char character) {
         switch (key) {
         case TerminalUtils::Key::ESCAPE:
             return_to_sections();
@@ -448,11 +448,6 @@ namespace tui {
     int NavigationTUI::get_effective_content_height() const {
         auto content_height = 0;
 
-        /*
-         * TODO: since this crazy bullshit isn't working when horizontal layout centering is enabled,
-         * I need to review this code
-         */
-
         if (current_state_ == NavigationState::SECTION_SELECTION) {
             content_height = 3 + static_cast<int>(sections_.size()) + 2;
         } else if (current_section_index_ < sections_.size()) {
@@ -470,7 +465,13 @@ namespace tui {
 
         auto [term_height, term_width] = TerminalManager::get_terminal_size();
         const int content_width = get_effective_content_width(term_width);
-        const int left_padding = (term_width - content_width) / 2;
+        auto left_padding = 0;
+
+        if (config_.layout.center_horizontally) {
+            left_padding = (term_width - content_width) / 2;
+        } else {
+            left_padding = 1;
+        }
 
         auto start_row = 1;
         if (config_.layout.center_vertically) {
@@ -688,7 +689,11 @@ namespace tui {
         clamp_selection();
     }
 
-    NavigationTUI::FormattedText NavigationTUI::center_string(const std::string &text, const int width) {
+    NavigationTUI::FormattedText NavigationTUI::center_string(const std::string &text, const int width) const {
+        if (!config_.layout.center_horizontally) {
+            return {text, 1};
+        }
+
         std::string result_content;
         auto total_lines = 0;
         std::string current_line;
@@ -780,34 +785,34 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_centering(bool horizontal, bool vertical) {
+    NavigationBuilder &NavigationBuilder::layout_centering(const bool horizontal, const bool vertical) {
         config_.layout.center_horizontally = horizontal;
         config_.layout.center_vertically = vertical;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_content_width(int min_width, int max_width) {
+    NavigationBuilder &NavigationBuilder::layout_content_width(const int min_width, const int max_width) {
         config_.layout.min_content_width = min_width;
         config_.layout.max_content_width = max_width;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_padding(int vertical_padding) {
+    NavigationBuilder &NavigationBuilder::layout_padding(const int vertical_padding) {
         config_.layout.vertical_padding = vertical_padding;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_auto_resize(bool enable) {
+    NavigationBuilder &NavigationBuilder::layout_auto_resize(const bool enable) {
         config_.layout.auto_resize_content = enable;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_borders(bool show) {
+    NavigationBuilder &NavigationBuilder::layout_borders(const bool show) {
         config_.layout.show_borders = show;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::layout_items_per_page(int count) {
+    NavigationBuilder &NavigationBuilder::layout_items_per_page(const int count) {
         config_.layout.items_per_page = count;
         return *this;
     }
@@ -830,32 +835,32 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::text_show_help(bool show) {
+    NavigationBuilder &NavigationBuilder::text_show_help(const bool show) {
         config_.text.show_help_text = show;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::text_show_pages(bool show) {
+    NavigationBuilder &NavigationBuilder::text_show_pages(const bool show) {
         config_.text.show_page_numbers = show;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::text_show_counters(bool show) {
+    NavigationBuilder &NavigationBuilder::text_show_counters(const bool show) {
         config_.text.show_counters = show;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::keys_quick_select(bool enable) {
+    NavigationBuilder &NavigationBuilder::keys_quick_select(const bool enable) {
         config_.enable_quick_select = enable;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::keys_vim_style(bool enable) {
+    NavigationBuilder &NavigationBuilder::keys_vim_style(const bool enable) {
         config_.enable_vim_keys = enable;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::keys_custom_shortcut(char key, const std::string &description) {
+    NavigationBuilder &NavigationBuilder::keys_custom_shortcut(const char key, const std::string &description) {
         config_.custom_shortcuts[key] = description;
         return *this;
     }
