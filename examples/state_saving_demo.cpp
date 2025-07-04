@@ -15,29 +15,29 @@ void save_state(const std::vector<Section> &sections) {
     }
 
     for (const auto &section : sections) {
-        file << "[" << section.name << "]\n";
+        file << std::format("[{}]\n", section.name);
         for (const auto &item : section.items) {
-            file << item.name << " = " << (item.selected ? "true" : "false") << "\n";
+            file << std::format("{} = {}\n", item.name, (item.selected ? "true" : "false"));
         }
     }
     std::cout << "\nConfiguration saved to config.ini\n";
 }
 
 int main() {
-    std::vector<Section> all_sections = {
+    std::vector all_sections = {
         SectionBuilder("System Settings").add_item("Dark Mode").add_item("Auto Updates").build(),
         SectionBuilder("Privacy").add_item("Location Tracking").add_item("Diagnostic Data").build()};
 
     NavigationBuilder()
         .add_sections(all_sections)
         .on_exit([](const std::vector<Section> &sections) { save_state(sections); })
-        .on_item_toggled([&all_sections](size_t section_index, size_t item_index, bool selected) {
+        .on_item_toggled([&all_sections](const size_t section_index, const size_t item_index, const bool selected) {
             if (section_index < all_sections.size() && item_index < all_sections[section_index].items.size()) {
                 all_sections[section_index].items[item_index].selected = selected;
             }
         })
         .keys_custom_shortcut('s', "Save configuration")
-        .on_custom_command([&all_sections](char key, const tui::NavigationTUI::NavigationState &) {
+        .on_custom_command([&all_sections](const char key, const NavigationTUI::NavigationState &) {
             if (key == 's') {
                 std::cout << "\nSaving configuration...\n";
                 save_state(all_sections);

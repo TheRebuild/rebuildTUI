@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 #include <vector>
 #include "navigation_tui.hpp"
@@ -23,13 +24,12 @@ std::vector<Section> generate_comprehensive_configuration() {
             .add_item("VPN Integration", "Route traffic through VPN")
             .select_items({"Block Telemetry", "Enable Firewall", "Secure DNS"})
             .on_enter([]() { std::cout << "🔒 Configuring privacy and security settings...\n"; })
-            .on_item_toggled([](size_t idx, bool selected) {
-                std::vector<std::string> items = {
+            .on_item_toggled([](const size_t idx, const bool selected) {
+                const std::vector<std::string> items = {
                     "Block Telemetry",       "Disable Location Tracking", "Clear Web Data", "Disable Microphone Access",
                     "Disable Camera Access", "Enable Firewall",           "Secure DNS",     "VPN Integration"};
                 if (idx < items.size()) {
-                    std::cout << "🔐 Privacy setting '" << items[idx] << "' " << (selected ? "ENABLED" : "DISABLED")
-                              << std::endl;
+                    std::println("🔐 Privacy setting '{}' {}", items[idx], (selected ? "ENABLED" : "DISABLED"));
                 }
             })
             .build();
@@ -39,7 +39,7 @@ std::vector<Section> generate_comprehensive_configuration() {
             .description("Improve system speed and responsiveness")
             .add_generated_items(
                 12,
-                [](size_t i) -> SelectableItem {
+                [](const size_t i) -> SelectableItem {
                     std::vector<std::pair<std::string, std::string>> optimizations = {
                         {"Disable Startup Programs", "Reduce boot time by disabling unnecessary startup apps"},
                         {"Clear Temporary Files", "Free up disk space by removing temp files"},
@@ -116,157 +116,133 @@ std::vector<Section> generate_comprehensive_configuration() {
 
 int main() {
     try {
-        auto sections = generate_comprehensive_configuration();
+        const auto sections = generate_comprehensive_configuration();
 
-        auto tui = NavigationBuilder()
-                       .text_titles("Example Windows Tweaker", "Configure: ")
-                       .text_help("Up/Down: Navigate | Enter: Select | 1-9: Quick | Q: Quit",
-                                  "Up/Down: Navigate | Space: Toggle | Enter: Back | Q: Quit")
-                       .text_messages("No options available in this section.")
-                       .text_show_help(true)
-                       .text_show_pages(true)
-                       .text_show_counters(true)
+        const auto tui =
+            NavigationBuilder()
+                .text_titles("Example Windows Tweaker", "Configure: ")
+                .text_help("Up/Down: Navigate | Enter: Select | 1-9: Quick | Q: Quit",
+                           "Up/Down: Navigate | Space: Toggle | Enter: Back | Q: Quit")
+                .text_messages("No options available in this section.")
+                .text_show_help(true)
+                .text_show_pages(true)
+                .text_show_counters(true)
 
-                       // Theme and styling
-                       // .theme_fancy()   // ✓  / ○
-                       // .theme_minimal() // * / nothing
-                       // .theme_modern()  // ● / "○
+                // Theme and styling
+                // .theme_fancy()   // ✓  / ○
+                // .theme_minimal() // * / nothing
+                // .theme_modern()  // ● / "○
 
-                       .theme_unicode(true)
-                       .theme_prefixes("✅", "❌") // requires theme_unicode(true)
+                .theme_unicode(true)
+                .theme_prefixes("✅", "❌") // requires theme_unicode(true)
 
-                       // currently placeholder
-                       // i'll implement in the future
-                       // .theme_colors(true)
-                       // .theme_accent_color("#00ff48")
+                // currently placeholder
+                // I'll implement in the future
+                // .theme_colors(true)
+                // .theme_accent_color("#00ff48")
 
-                       // Layout configuration
-                       /*
-                        * It seems that layout_centering works only with vertical layout?
-                        *
-                        * Will fix this in the future
-                        */
-                       .layout_centering(false, // horizontal
-                                         true) // vertical
+                // Layout configuration
+                /*
+                 * It seems that layout_centering works only with vertical layout?
+                 *
+                 * Will fix this in the future
+                 */
+                .layout_centering(false, // horizontal
+                                  true) // vertical
 
-                       .layout_content_width(60, 80)
-                       .layout_items_per_page(15) // Show 15 items per page
+                .layout_content_width(60, 80)
+                .layout_items_per_page(15) // Show 15 items per page
 
-                       /*
-                        * Layout borders is a placeholder for future implementation
-                        */
-                       .layout_borders(false) // Don't show borders
+                /*
+                 * Layout borders is a placeholder for future implementation
+                 */
+                .layout_borders(false) // Don't show borders
 
-                       .layout_auto_resize(true) // Auto-adjust to terminal size
+                .layout_auto_resize(true) // Auto-adjust to terminal size
 
-                       // Keyboard shortcuts
-                       .keys_custom_shortcut('h', "Show detailed help")
-                       .keys_custom_shortcut('s', "Save configuration")
-                       .keys_custom_shortcut('r', "Reset to defaults")
-                       .keys_custom_shortcut('i', "Show system info")
-                       // .keys_vim_style(true)           // Enable hjkl navigation
+                // Keyboard shortcuts
+                .keys_custom_shortcut('h', "Show detailed help")
+                .keys_custom_shortcut('s', "Save configuration")
+                .keys_custom_shortcut('r', "Reset to defaults")
+                .keys_custom_shortcut('i', "Show system info")
+                .keys_vim_style(true) // Enable hjkl navigation
 
-                       .add_sections(sections)
+                .add_sections(sections)
 
-                       .on_section_selected([](size_t /*index*/, const Section &section) {
-                           std::cout << "📂 Entered section: " << section.name;
-                           if (!section.description.empty()) {
-                               std::cout << " - " << section.description;
-                           }
-                           std::cout << std::endl;
-                       })
-                       .on_item_toggled([](size_t section_idx, size_t item_idx, bool selected) {
-                           std::cout << "🔄 Section " << section_idx << ", Item " << item_idx << " is now "
-                                     << (selected ? "ENABLED" : "DISABLED") << std::endl;
-                       })
-                       .on_page_changed([](int new_page, int total_pages) {
-                           std::cout << "📄 Page changed to " << (new_page + 1) << " of " << total_pages << std::endl;
-                       })
-                       .on_state_changed(
-                           [](NavigationTUI::NavigationState old_state, NavigationTUI::NavigationState new_state) {
-                               std::vector<std::string> state_names = {"Section Selection", "Item Selection"};
-                               std::cout << "🔄 Navigation state: " << state_names[static_cast<int>(old_state)] << " → "
-                                         << state_names[static_cast<int>(new_state)] << std::endl;
-                           })
-                       .on_custom_command([](char key, NavigationTUI::NavigationState /*state*/) -> bool {
-                           switch (key) {
-                           case '\n':
-                               return true;
-                           case 'h':
-                               std::cout << "\n📖 HELP:\n";
-                               std::cout << "========\n";
-                               std::cout << "This universal TUI system can be used for any "
-                                            "configuration interface.\n";
-                               std::cout << "Navigate with arrow keys or hjkl (vim-style).\n";
-                               std::cout << "Use Space to toggle options, Enter to enter "
-                                            "sections.\n";
-                               std::cout << "Press 'q' to quit, 'b' to go back.\n";
-                               std::cout << "Custom shortcuts: s=save, r=reset, i=info, h=help\n\n";
-                               return true;
+                .on_section_selected([](size_t /*index*/, const Section &section) {
+                    std::cout << "📂 Entered section: " << section.name;
+                    if (!section.description.empty()) {
+                        std::cout << " - " << section.description;
+                    }
+                    std::cout << std::endl;
+                })
+                .on_item_toggled([](const size_t section_idx, const size_t item_idx, const bool selected) {
+                    std::cout << "🔄 Section " << section_idx << ", Item " << item_idx << " is now "
+                              << (selected ? "ENABLED" : "DISABLED") << std::endl;
+                })
+                .on_page_changed([](const int new_page, const int total_pages) {
+                    std::cout << "📄 Page changed to " << (new_page + 1) << " of " << total_pages << std::endl;
+                })
+                .on_state_changed(
+                    [](NavigationTUI::NavigationState old_state, NavigationTUI::NavigationState new_state) {
+                        const std::vector<std::string> state_names = {"Section Selection", "Item Selection"};
+                        std::cout << "🔄 Navigation state: " << state_names[static_cast<int>(old_state)] << " → "
+                                  << state_names[static_cast<int>(new_state)] << std::endl;
+                    })
+                .on_custom_command([](const char key, NavigationTUI::NavigationState /*state*/) -> bool {
+                    switch (key) {
+                    case '\n':
+                        return true;
+                    case 'h':
+                        std::cout << "\n📖 HELP:\n";
+                        std::cout << "========\n";
+                        std::cout << "Navigate with arrow keys or hjkl (vim-style).\n";
+                        std::cout << "Use Space to toggle options, Enter to enter "
+                                     "sections.\n";
+                        std::cout << "Press 'q' to quit, 'b' to go back.\n";
+                        std::cout << "Custom shortcuts: s=save, r=reset, i=info, h=help\n\n";
+                        return true;
 
-                           case 's':
-                               std::cout << "\n💾 Configuration saved to profile!\n";
-                               std::cout << "All your settings have been applied successfully.\n\n";
-                               return true;
+                    default:
+                        return false; // Not handled
+                    }
+                })
+                .on_exit([](const std::vector<Section> &secs) {
+                    std::println(R"(\n🎉 Configuration Complete!
+==========================
+📊 Final Configuration Summary:)");
 
-                           case 'r':
-                               std::cout << "\n🔄 Reset to default configuration\n";
-                               std::cout << "All settings have been restored to defaults.\n\n";
-                               return true;
+                    size_t total_selected = 0;
+                    size_t total_sections_with_selections = 0;
 
-                           case 'i':
-                               std::cout << "\n💻 SYSTEM INFO:\n";
-                               std::cout << "===============\n";
-                               std::cout << "Universal TUI Configuration System v2.0\n";
-                               std::cout << "Built with modern C++ and FTXUI\n";
-                               std::cout << "Supports any type of hierarchical configuration\n\n";
-                               return true;
+                    for (const auto &section : secs) {
+                        if (auto selected_items = section.get_selected_names(); !selected_items.empty()) {
+                            total_sections_with_selections++;
+                            std::println("🔹 {} ({} items):", section.name, selected_items.size());
+                            for (const auto &item : selected_items) {
+                                std::println("\t✅ {}", item);
+                                total_selected++;
+                            }
+                            std::println();
+                        }
+                    }
 
-                           default:
-                               return false; // Not handled
-                           }
-                       })
-                       .on_exit([](const std::vector<Section> &sections) {
-                           std::cout << "\n🎉 Configuration Complete!\n";
-                           std::cout << "==========================\n";
-                           std::cout << "📊 Final Configuration Summary:\n\n";
+                    if (total_selected == 0) {
+                        std::println("ℹ️  No options were selected.");
+                    } else {
+                        std::println("📈 Statistics:");
+                        std::println("\t• Total options selected: {}", total_selected);
+                        std::println("\t• Sections configured: {} of {}", total_sections_with_selections, secs.size());
+                    }
+                    std::println("\n🚀 Your system is now configured!");
 
-                           size_t total_selected = 0;
-                           size_t total_sections_with_selections = 0;
+                    std::println("\nPress Enter to exit...");
+                    std::cin.get();
+                })
 
-                           for (const auto &section : sections) {
-                               auto selected_items = section.get_selected_names();
-                               if (!selected_items.empty()) {
-                                   total_sections_with_selections++;
-                                   std::cout << "🔹 " << section.name << " (" << selected_items.size() << " items):\n";
-                                   for (const auto &item : selected_items) {
-                                       std::cout << "   ✅ " << item << "\n";
-                                       total_selected++;
-                                   }
-                                   std::cout << "\n";
-                               }
-                           }
-
-                           if (total_selected == 0) {
-                               std::cout << "ℹ️  No options were selected.\n";
-                           } else {
-                               std::cout << "📈 Statistics:\n";
-                               std::cout << "   • Total options selected: " << total_selected << "\n";
-                               std::cout << "   • Sections configured: " << total_sections_with_selections << " of "
-                                         << sections.size() << "\n";
-                           }
-
-                           std::cout << "\n🚀 Your system is now configured!\n";
-                           std::cout << "💡 This same framework can be used for any "
-                                        "hierarchical selection interface.\n";
-                       })
-
-                       .build();
+                .build();
 
         tui->run();
-
-        // exit seems not working, need to investigate this issue later
-        std::cout << "\nPress Enter to exit...\n" << std::endl;
 
         return 0;
     } catch (const std::exception &e) {

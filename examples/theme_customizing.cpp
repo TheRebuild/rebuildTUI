@@ -1,4 +1,5 @@
 #include <navigation_tui.hpp>
+#include <print>
 #include <section_builder.hpp>
 
 using namespace tui;
@@ -11,14 +12,13 @@ int main() {
     auto color_section =
         SectionBuilder("Color Scheme").add_items(std::vector<std::string>{"Blue", "Green", "Red", "Purple"}).build();
 
-    NavigationBuilder config;
-
     auto ui_section = SectionBuilder("UI Settings").add_item("Enable Animations").add_item("Show Icons").build();
 
-    config.add_sections({theme_section, color_section, ui_section})
-        .on_item_toggled([](size_t section_idx, size_t item_idx, bool selected) {
+    NavigationBuilder()
+        .add_sections({theme_section, color_section, ui_section})
+        .on_item_toggled([](const size_t section_idx, const size_t item_idx, const bool selected) {
             if (section_idx == 0 && item_idx == 0 && selected) {
-                std::cout << "Applying dark theme...\n";
+                std::println("Applying dark theme...");
             }
         })
 
