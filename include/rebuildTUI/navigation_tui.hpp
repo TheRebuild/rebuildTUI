@@ -38,9 +38,8 @@ namespace tui {
          * @brief Layout configuration
          */
         struct Layout {
-            // TODO: fix horizontal centering
-            bool center_horizontally = false; ///< Center content horizontally on screen
-            bool center_vertically = false; ///< Center content vertically on screen
+            bool center_horizontally = true; ///< Center content horizontally on screen
+            bool center_vertically = true; ///< Center content vertically on screen
             int max_content_width = 80; ///< Maximum width for content
             int min_content_width = 40; ///< Minimum width for content
 
@@ -251,7 +250,7 @@ namespace tui {
         /**
          * @brief Render header with title
          */
-        static void render_header(int term_width, int content_width, const std::string &title);
+        void render_header(int term_width, int content_width, const std::string &title);
 
         /**
          * @brief Render footer with help text and page info
@@ -325,7 +324,7 @@ namespace tui {
         /*
          * @brief Center a string within a given width
          */
-        [[nodiscard]] static FormattedText center_string(const std::string &text, int width);
+        [[nodiscard]] FormattedText center_string(const std::string &text, int width) const;
     };
 
     /**
