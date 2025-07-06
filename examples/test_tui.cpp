@@ -142,11 +142,11 @@ int main() {
                 // .theme_accent_color("#00ff48")
 
                 // Layout configuration
-                .layout_centering(false, // horizontal
+                .layout_centering(true, // horizontal
                                   true) // vertical
 
                 .layout_content_width(60, 80)
-                .layout_items_per_page(15) // Show 15 items per page
+                .layout_items_per_page(8) // Show 8 items per page
 
                 /*
                  * Layout borders is a placeholder for future implementation
