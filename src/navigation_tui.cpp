@@ -486,7 +486,7 @@ namespace tui {
     void NavigationTUI::draw_border(int top, int left, int width, int height) const {
         std::string top_left, top_right, bottom_left, bottom_right, horizontal, vertical;
 
-        switch (config_.theme.border_style) {
+        switch (static_cast<int>(config_.theme.border_style)) {
         case tui_extras::BorderStyle::ROUNDED:
             top_left = "╭";
             top_right = "╮";
