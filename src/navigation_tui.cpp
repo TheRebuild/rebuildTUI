@@ -486,7 +486,7 @@ namespace tui {
     void NavigationTUI::draw_border(int top, int left, int width, int height) const {
         std::string top_left, top_right, bottom_left, bottom_right, horizontal, vertical;
 
-        switch (static_cast<int>(config_.theme.border_style)) {
+        switch (config_.theme.border_style) {
         case tui_extras::BorderStyle::ROUNDED:
             top_left = "╭";
             top_right = "╮";
@@ -494,6 +494,7 @@ namespace tui {
             bottom_right = "╯";
             horizontal = "─";
             vertical = "│";
+            break;
         case tui_extras::BorderStyle::DOUBLE:
             top_left = "╔";
             top_right = "╗";
@@ -501,6 +502,7 @@ namespace tui {
             bottom_right = "╝";
             horizontal = "═";
             vertical = "║";
+            break;
         case tui_extras::BorderStyle::SHARP:
             top_left = "┌";
             top_right = "┐";
@@ -508,6 +510,7 @@ namespace tui {
             bottom_right = "┘";
             horizontal = "─";
             vertical = "│";
+            break;
         case tui_extras::BorderStyle::ASCII:
         default:
             top_left = "+";
@@ -516,6 +519,7 @@ namespace tui {
             bottom_right = "+";
             horizontal = "-";
             vertical = "|";
+            break;
         }
 
         TerminalUtils::move_cursor(top, left);
