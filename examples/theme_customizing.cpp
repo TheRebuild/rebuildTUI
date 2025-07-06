@@ -2,7 +2,11 @@
 #include <print>
 #include <section_builder.hpp>
 
+// for custom layout borders
+#include <styles.hpp>
+
 using namespace tui;
+using namespace tui_extras;
 
 int main() {
     auto theme_section = SectionBuilder("Theme Settings")
@@ -28,6 +32,10 @@ int main() {
         // .theme_modern()  // ● / "○
         .theme_indicators('+', '-') // Custom indicators
         .theme_prefixes("[X] ", "[ ] ") // Custom prefixes
+
+        // Set custom layout borders
+        .layout_borders(true)
+        .theme_border_style(BorderStyle::ROUNDED)
 
         // currently placeholder
         // I'll implement in the future
