@@ -32,7 +32,7 @@ namespace tui {
             bool use_colors = true; ///< Whether to use ANSI colors
             tui_extras::BorderStyle border_style =
                 tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
-            tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
+            std::string accent_color = "cyan"; ///< Accent color for highlights
         };
 
         /**
