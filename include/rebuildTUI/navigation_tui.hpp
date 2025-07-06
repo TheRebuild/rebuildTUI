@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 #include "section.hpp"
+#include "styles.hpp"
 #include "terminal_utils.hpp"
 
 namespace tui {
-
     /**
      * @brief TUI interface prototype
      */
@@ -31,7 +31,7 @@ namespace tui {
             bool use_unicode = true; ///< Whether to use Unicode characters
             bool use_colors = true; ///< Whether to use ANSI colors
             std::string border_style = "rounded"; ///< Border style: "rounded", "sharp", "double"
-            std::string accent_color = "cyan"; ///< Accent color for highlights
+            tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
         };
 
         /**
@@ -295,6 +295,7 @@ namespace tui {
         // [[nodiscard]] std::vector<std::string> get_current_item_display_items() const;
         [[nodiscard]] std::string format_item_with_theme(const SelectableItem &item, bool is_selected) const;
         [[nodiscard]] std::string get_page_info_string() const;
+        void apply_accent_color() const;
 
         /**
          * @brief Layout calculation
@@ -347,6 +348,11 @@ namespace tui {
         NavigationTUI::CustomCommandCallback custom_command_callback_;
 
     public:
+        /*
+         * TODO: may I move theme_* to styles.hpp (or extras.hpp)?
+         */
+
+
         /**
          * @brief Theme configuration methods
          */
@@ -355,7 +361,7 @@ namespace tui {
         NavigationBuilder &theme_unicode(bool enable);
         NavigationBuilder &theme_colors(bool enable);
         NavigationBuilder &theme_border_style(const std::string &style);
-        NavigationBuilder &theme_accent_color(const std::string &color);
+        NavigationBuilder &theme_accent_color(const tui_extras::AccentColor &color);
 
         /**
          * @brief Layout configuration methods
