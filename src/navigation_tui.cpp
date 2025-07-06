@@ -8,14 +8,15 @@
 namespace tui {
     NavigationTUI::NavigationTUI() :
         current_state_(NavigationState::SECTION_SELECTION), current_section_index_(0), current_selection_index_(0),
-        current_page_(0), running_(false), needs_redraw_(true) {
+        current_page_(0), running_(false), needs_redraw_(true), previous_width_{0}, previous_height_{0} {
         config_ = Config{};
         terminal_manager_ = std::make_unique<TerminalManager>();
     }
 
     NavigationTUI::NavigationTUI(Config config) :
         current_state_(NavigationState::SECTION_SELECTION), current_section_index_(0), current_selection_index_(0),
-        current_page_(0), config_(std::move(config)), running_(false), needs_redraw_(true) {
+        current_page_(0), config_(std::move(config)), running_(false), needs_redraw_(true), previous_width_{0},
+        previous_height_{0} {
         terminal_manager_ = std::make_unique<TerminalManager>();
     }
 
@@ -149,14 +150,14 @@ namespace tui {
         }
     }
 
-    void NavigationTUI::enter_section(size_t section_index) {
+    void NavigationTUI::enter_section(const size_t section_index) {
         if (section_index < sections_.size()) {
             current_section_index_ = section_index;
             current_selection_index_ = 0;
             current_page_ = 0;
             change_state(NavigationState::ITEM_SELECTION);
 
-            auto &section = sections_[section_index];
+            const auto &section = sections_[section_index];
             section.trigger_enter();
 
             if (on_section_selected_) {
@@ -167,7 +168,7 @@ namespace tui {
         }
     }
 
-    void NavigationTUI::go_to_page(int page) {
+    void NavigationTUI::go_to_page(const int page) {
         int total_pages = calculate_total_pages();
         if (page >= 0 && page < total_pages && page != current_page_) {
             current_page_ = page;
@@ -198,11 +199,13 @@ namespace tui {
         return selections;
     }
 
-    std::vector<std::string> NavigationTUI::get_section_selections(size_t section_index) const {
-        if (section_index < sections_.size()) {
-            return sections_[section_index].get_selected_names();
-        }
-        return {};
+    std::vector<std::string> NavigationTUI::get_section_selections(const size_t section_index) const {
+        // if (section_index < sections_.size()) {
+        //     return sections_[section_index].get_selected_names();
+        // }
+        // return {};
+        return (section_index < sections_.size()) ? sections_[section_index].get_selected_names()
+                                                  : std::vector<std::string>{};
     }
 
     void NavigationTUI::clear_all_selections() {
@@ -212,7 +215,7 @@ namespace tui {
         needs_redraw_ = true;
     }
 
-    void NavigationTUI::clear_section_selections(size_t section_index) {
+    void NavigationTUI::clear_section_selections(const size_t section_index) {
         if (section_index < sections_.size()) {
             sections_[section_index].clear_selections();
             needs_redraw_ = true;
@@ -244,10 +247,22 @@ namespace tui {
     void NavigationTUI::initialize() {
         terminal_manager_->setup_terminal();
         validate_indices();
+
+        auto [t_height, t_width] = TerminalManager::get_terminal_size();
+        previous_width_ = t_width;
+        previous_height_ = t_height;
+
         needs_redraw_ = true;
     }
 
     void NavigationTUI::process_events() {
+        auto [t_height, t_width] = TerminalManager::get_terminal_size();
+        if (t_width != previous_width_ || t_height != previous_height_) {
+            previous_width_ = t_width;
+            previous_height_ = t_height;
+            needs_redraw_ = true;
+        }
+
         if (auto key_event = TerminalManager::get_key_input(); key_event.has_value()) {
             handle_input(key_event->key, key_event->character);
         }
@@ -397,7 +412,7 @@ namespace tui {
 
     void NavigationTUI::select_current_item() {
         if (current_state_ == NavigationState::SECTION_SELECTION && current_selection_index_ < sections_.size()) {
-            enter_section(current_section_index_);
+            enter_section(current_selection_index_);
         } else {
             toggle_current_item();
         }
@@ -435,7 +450,6 @@ namespace tui {
     }
 
     int NavigationTUI::get_effective_content_width(const int term_width) const {
-        // auto [height, width] = TerminalUtils::get_terminal_size();
         int content_width = term_width - 4;
 
         content_width = (config_.layout.auto_resize_content)
@@ -671,9 +685,9 @@ namespace tui {
         }
     }
 
-    void NavigationTUI::change_state(NavigationState new_state) {
+    void NavigationTUI::change_state(const NavigationState new_state) {
         if (current_state_ != new_state) {
-            NavigationState old_state = current_state_;
+            const NavigationState old_state = current_state_;
             current_state_ = new_state;
 
             if (on_state_changed_) {
@@ -765,12 +779,12 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_unicode(bool enable) {
+    NavigationBuilder &NavigationBuilder::theme_unicode(const bool enable) {
         config_.theme.use_unicode = enable;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_colors(bool enable) {
+    NavigationBuilder &NavigationBuilder::theme_colors(const bool enable) {
         config_.theme.use_colors = enable;
         return *this;
     }

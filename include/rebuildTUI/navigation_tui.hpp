@@ -102,6 +102,10 @@ namespace tui {
         bool running_;
         bool needs_redraw_;
 
+        // previous terminal size
+        int previous_width_;
+        int previous_height_;
+
         // Event callbacks
         SectionSelectedCallback on_section_selected_;
         ItemToggledCallback on_item_toggled_;
