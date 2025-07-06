@@ -32,7 +32,7 @@ int main() {
         // currently placeholder
         // I'll implement in the future
         .theme_colors(true)
-        .theme_accent_color("blue")
+        .theme_accent_color(tui_extras::AccentColor::CYAN)
 
         .layout_centering(true, // horizontal layout
                           true) // vertical layout
