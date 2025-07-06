@@ -31,6 +31,7 @@ set(HEADERS
     include/rebuildTUI/section_builder.hpp
     include/rebuildTUI/selectable_item.hpp
     include/rebuildTUI/terminal_utils.hpp
+    include/rebuildTUI/styles.hpp
 )
 
 if(BUILD_LIBRARY)
