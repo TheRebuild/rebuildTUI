@@ -219,7 +219,7 @@ namespace tui {
         /**
          * @brief Horizontal centering to text
          */
-        [[nodiscard]] static std::string apply_centering(const std::string &text) {
+        [[nodiscard]] std::string apply_centering(const std::string &text) {
             // TODO: Implement horizontal centering logic
             if (!config_.layout.center_horizontally) { // oh fuck, oh fuck...
                 return text;
