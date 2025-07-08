@@ -30,7 +30,8 @@ namespace tui {
             std::string unselected_prefix = "  "; ///< Prefix for unselected items
             bool use_unicode = true; ///< Whether to use Unicode characters
             bool use_colors = true; ///< Whether to use ANSI colors
-            std::string border_style = "rounded"; ///< Border style: "rounded", "sharp", "double"
+            tui_extras::BorderStyle border_style =
+                tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
             tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
         };
 
@@ -218,7 +219,7 @@ namespace tui {
         /**
          * @brief Horizontal centering to text
          */
-        [[nodiscard]] std::string apply_centering(const std::string &text) const {
+        [[nodiscard]] std::string apply_centering(const std::string &text) {
             // TODO: Implement horizontal centering logic
             if (!config_.layout.center_horizontally) { // oh fuck, oh fuck...
                 return text;
@@ -239,6 +240,7 @@ namespace tui {
         void process_events();
 
         void handle_input(TerminalUtils::Key key, char character);
+        void draw_border(int top, int left, int width, int height) const;
         void render();
 
         /**
@@ -360,7 +362,7 @@ namespace tui {
         NavigationBuilder &theme_prefixes(const std::string &selected, const std::string &unselected);
         NavigationBuilder &theme_unicode(bool enable);
         NavigationBuilder &theme_colors(bool enable);
-        NavigationBuilder &theme_border_style(const std::string &style);
+        NavigationBuilder &theme_border_style(const tui_extras::BorderStyle &style);
         NavigationBuilder &theme_accent_color(const tui_extras::AccentColor &color);
 
         /**

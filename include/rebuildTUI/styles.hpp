@@ -1,6 +1,8 @@
 #pragma once
 
 namespace tui_extras {
+    enum class BorderStyle { ROUNDED, DOUBLE, SHARP, ASCII };
+  
     enum class AccentColor {
         CYAN,
         BLUE,

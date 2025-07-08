@@ -453,6 +453,10 @@ namespace tui {
     int NavigationTUI::get_effective_content_width(const int term_width) const {
         int content_width = term_width - 4;
 
+        if (config_.layout.show_borders) {
+            content_width -= 2;
+        }
+
         content_width = (config_.layout.auto_resize_content)
             ? std::clamp(content_width, config_.layout.min_content_width, config_.layout.max_content_width)
             : config_.layout.max_content_width;
@@ -472,26 +476,111 @@ namespace tui {
             content_height = 3 + static_cast<int>((second - first)) + 2;
         }
 
+        if (config_.layout.show_borders) {
+            content_height += 2;
+        }
+
         return content_height;
+    }
+
+    void NavigationTUI::draw_border(int top, int left, int width, int height) const {
+        std::string top_left, top_right, bottom_left, bottom_right, horizontal, vertical;
+
+        switch (config_.theme.border_style) {
+        case tui_extras::BorderStyle::ROUNDED:
+            top_left = "╭";
+            top_right = "╮";
+            bottom_left = "╰";
+            bottom_right = "╯";
+            horizontal = "─";
+            vertical = "│";
+            break;
+        case tui_extras::BorderStyle::DOUBLE:
+            top_left = "╔";
+            top_right = "╗";
+            bottom_left = "╚";
+            bottom_right = "╝";
+            horizontal = "═";
+            vertical = "║";
+            break;
+        case tui_extras::BorderStyle::SHARP:
+            top_left = "┌";
+            top_right = "┐";
+            bottom_left = "└";
+            bottom_right = "┘";
+            horizontal = "─";
+            vertical = "│";
+            break;
+        case tui_extras::BorderStyle::ASCII:
+        default:
+            top_left = "+";
+            top_right = "+";
+            bottom_left = "+";
+            bottom_right = "+";
+            horizontal = "-";
+            vertical = "|";
+            break;
+        }
+
+        TerminalUtils::move_cursor(top, left);
+        std::cout << top_left;
+        for (auto i = 0; i < width - 2; ++i) {
+            std::cout << horizontal;
+        }
+        std::cout << top_right;
+
+        for (int y = top + 1; y < top + height - 1; ++y) {
+            TerminalUtils::move_cursor(y, left);
+            std::cout << vertical;
+            TerminalUtils::move_cursor(y, left + width - 1);
+            std::cout << vertical;
+        }
+
+        TerminalUtils::move_cursor(top + height - 1, left);
+        std::cout << bottom_left;
+        for (int i = 0; i < width - 2; ++i) {
+            std::cout << horizontal;
+        }
+        std::cout << bottom_right;
     }
 
     void NavigationTUI::render() {
         TerminalManager::clear_screen();
 
         auto [term_height, term_width] = TerminalManager::get_terminal_size();
-        const int content_width = get_effective_content_width(term_width);
-        auto left_padding = 0;
+        int content_width = get_effective_content_width(term_width);
+        auto left_padding = 1;
 
         if (config_.layout.center_horizontally) {
             left_padding = (term_width - content_width) / 2;
-        } else {
-            left_padding = 1;
         }
 
         auto start_row = 1;
         if (config_.layout.center_vertically) {
             const int content_height = get_effective_content_height();
             start_row = std::max(1, (term_height - content_height) / 2);
+        }
+
+        if (config_.layout.show_borders) {
+            content_width = std::max(10, content_width - 2);
+
+            left_padding = std::max(1, left_padding - 1);
+            start_row = std::max(1, start_row - 1);
+        }
+
+        if (config_.layout.show_borders) {
+            int content_height = 0;
+            if (current_state_ == NavigationState::SECTION_SELECTION) {
+                content_height = 3 + static_cast<int>(sections_.size()) + 2;
+            } else if (current_section_index_ < sections_.size()) {
+                auto [first, second] = get_current_page_bounds();
+                content_height = 3 + static_cast<int>((second - first)) + 2;
+            }
+
+            draw_border(start_row, left_padding, content_width + 2, content_height + 2);
+
+            left_padding += 1;
+            start_row += 1;
         }
 
         if (current_state_ == NavigationState::SECTION_SELECTION) {
@@ -830,7 +919,7 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_border_style(const std::string &style) {
+    NavigationBuilder &NavigationBuilder::theme_border_style(const tui_extras::BorderStyle &style) {
         config_.theme.border_style = style;
         return *this;
     }
@@ -970,7 +1059,7 @@ namespace tui {
         config_.theme.use_colors = false;
         config_.theme.selected_prefix = "* ";
         config_.theme.unselected_prefix = "  ";
-        config_.theme.border_style = "simple";
+        config_.theme.border_style = tui_extras::BorderStyle::ASCII;
         return *this;
     }
 
@@ -979,7 +1068,7 @@ namespace tui {
         config_.theme.use_colors = true;
         config_.theme.selected_prefix = "✓ ";
         config_.theme.unselected_prefix = "○ ";
-        config_.theme.border_style = "rounded";
+        config_.theme.border_style = tui_extras::BorderStyle::ROUNDED;
         return *this;
     }
 
@@ -988,7 +1077,7 @@ namespace tui {
         config_.theme.use_colors = false;
         config_.theme.selected_prefix = "[X] ";
         config_.theme.unselected_prefix = "[ ] ";
-        config_.theme.border_style = "double";
+        config_.theme.border_style = tui_extras::BorderStyle::DOUBLE;
         return *this;
     }
 
@@ -997,8 +1086,9 @@ namespace tui {
         config_.theme.use_colors = true;
         config_.theme.selected_prefix = "● ";
         config_.theme.unselected_prefix = "○ ";
-        config_.theme.border_style = "rounded";
+        config_.theme.border_style = tui_extras::BorderStyle::ROUNDED;
         config_.theme.accent_color = tui_extras::AccentColor::BLUE;
+
         return *this;
     }
 
