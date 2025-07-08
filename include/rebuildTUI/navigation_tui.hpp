@@ -32,7 +32,7 @@ namespace tui {
             bool use_colors = true; ///< Whether to use ANSI colors
             tui_extras::BorderStyle border_style =
                 tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
-            std::string accent_color = "cyan"; ///< Accent color for highlights
+            tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
         };
 
         /**
@@ -297,6 +297,7 @@ namespace tui {
         // [[nodiscard]] std::vector<std::string> get_current_item_display_items() const;
         [[nodiscard]] std::string format_item_with_theme(const SelectableItem &item, bool is_selected) const;
         [[nodiscard]] std::string get_page_info_string() const;
+        void apply_accent_color() const;
 
         /**
          * @brief Layout calculation
@@ -362,7 +363,7 @@ namespace tui {
         NavigationBuilder &theme_unicode(bool enable);
         NavigationBuilder &theme_colors(bool enable);
         NavigationBuilder &theme_border_style(const tui_extras::BorderStyle &style);
-        NavigationBuilder &theme_accent_color(const std::string &color);
+        NavigationBuilder &theme_accent_color(const tui_extras::AccentColor &color);
 
         /**
          * @brief Layout configuration methods

@@ -611,6 +611,30 @@ namespace tui {
         std::cout << separator << "\n\n";
     }
 
+    void NavigationTUI::apply_accent_color() const {
+        static const std::map<tui_extras::AccentColor, TerminalUtils::Color> color_map = {
+            {tui_extras::AccentColor::CYAN, TerminalUtils::Color::CYAN},
+            {tui_extras::AccentColor::BLUE, TerminalUtils::Color::BLUE},
+            {tui_extras::AccentColor::GREEN, TerminalUtils::Color::GREEN},
+            {tui_extras::AccentColor::RED, TerminalUtils::Color::RED},
+            {tui_extras::AccentColor::YELLOW, TerminalUtils::Color::YELLOW},
+            {tui_extras::AccentColor::MAGENTA, TerminalUtils::Color::MAGENTA},
+            {tui_extras::AccentColor::WHITE, TerminalUtils::Color::WHITE},
+            {tui_extras::AccentColor::BRIGHT_CYAN, TerminalUtils::Color::BRIGHT_CYAN},
+            {tui_extras::AccentColor::BRIGHT_BLUE, TerminalUtils::Color::BRIGHT_BLUE},
+            {tui_extras::AccentColor::BRIGHT_GREEN, TerminalUtils::Color::BRIGHT_GREEN},
+            {tui_extras::AccentColor::BRIGHT_RED, TerminalUtils::Color::BRIGHT_RED},
+            {tui_extras::AccentColor::BRIGHT_YELLOW, TerminalUtils::Color::BRIGHT_YELLOW},
+            {tui_extras::AccentColor::BRIGHT_MAGENTA, TerminalUtils::Color::BRIGHT_MAGENTA},
+            {tui_extras::AccentColor::BRIGHT_WHITE, TerminalUtils::Color::BRIGHT_WHITE}};
+
+        if (const auto it = color_map.find(config_.theme.accent_color); it != color_map.end()) {
+            TerminalUtils::set_color(it->second);
+        } else {
+            TerminalUtils::set_color(TerminalUtils::Color::CYAN);
+        }
+    }
+
     void NavigationTUI::render_section_selection(const int start_row, const int left_padding, const int content_width) {
         // Header
         TerminalUtils::move_cursor(start_row, left_padding);
@@ -624,6 +648,10 @@ namespace tui {
         for (size_t i = 0; i < sections_.size(); ++i) {
             TerminalUtils::move_cursor(static_cast<int>(start_row + 3 + i), left_padding);
 
+            if (i == current_selection_index_ && config_.theme.use_colors) {
+                apply_accent_color();
+            }
+
             std::string display_text = std::to_string(i + 1) + ". " + sections_[i].name;
 
             if (config_.text.show_counters) {
@@ -635,6 +663,10 @@ namespace tui {
 
             std::string prefix = (i == current_selection_index_) ? "> " : "  ";
             std::cout << center_string(prefix + display_text, content_width).content;
+
+            if (i == current_selection_index_ && config_.theme.use_colors) {
+                TerminalUtils::reset_formatting();
+            }
         }
     }
 
@@ -663,10 +695,18 @@ namespace tui {
             for (size_t i = first; i < second; ++i) {
                 TerminalUtils::move_cursor(static_cast<int>(start_row + 3 + (i - first)), left_padding);
 
+                if ((i - first) == current_selection_index_ && config_.theme.use_colors) {
+                    apply_accent_color();
+                }
+
                 if (const auto *item = section.get_item(i)) {
                     std::string display_text = format_item_with_theme(*item, (i - first) == current_selection_index_);
 
                     std::cout << center_string(display_text, content_width).content;
+                }
+
+                if ((i - first) == current_selection_index_ && config_.theme.use_colors) {
+                    TerminalUtils::reset_formatting();
                 }
             }
         }
@@ -884,7 +924,7 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_accent_color(const std::string &color) {
+    NavigationBuilder &NavigationBuilder::theme_accent_color(const tui_extras::AccentColor &color) {
         config_.theme.accent_color = color;
         return *this;
     }
@@ -1047,7 +1087,8 @@ namespace tui {
         config_.theme.selected_prefix = "● ";
         config_.theme.unselected_prefix = "○ ";
         config_.theme.border_style = tui_extras::BorderStyle::ROUNDED;
-        config_.theme.accent_color = "blue";
+        config_.theme.accent_color = tui_extras::AccentColor::BLUE;
+
         return *this;
     }
 
