@@ -124,7 +124,7 @@ include(FetchContent)
 FetchContent_Declare(
     rebuildtui
     GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
-    GIT_TAG v0.0.4
+    GIT_TAG v0.0.6
 )
 
 FetchContent_MakeAvailable(rebuildtui)
