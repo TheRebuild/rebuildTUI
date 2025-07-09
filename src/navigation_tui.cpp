@@ -470,11 +470,11 @@ namespace tui {
         if (current_state_ == NavigationState::SECTION_SELECTION) {
             content_height = 3 + static_cast<int>(sections_.size()) + 2;
         } else if (current_section_index_ < sections_.size()) {
-            [[maybe_unused]] const auto &section = sections_[current_section_index_];
-
             auto [first, second] = get_current_page_bounds();
             content_height = 3 + static_cast<int>((second - first)) + 2;
         }
+
+        content_height += 2 * config_.layout.vertical_padding;
 
         if (config_.layout.show_borders) {
             content_height += 2;
@@ -569,7 +569,8 @@ namespace tui {
         }
 
         if (config_.layout.show_borders) {
-            int content_height = 0;
+            auto content_height = 0;
+
             if (current_state_ == NavigationState::SECTION_SELECTION) {
                 content_height = 3 + static_cast<int>(sections_.size()) + 2;
             } else if (current_section_index_ < sections_.size()) {
@@ -577,11 +578,14 @@ namespace tui {
                 content_height = 3 + static_cast<int>((second - first)) + 2;
             }
 
+            content_height += 2 * config_.layout.vertical_padding;
             draw_border(start_row, left_padding, content_width + 2, content_height + 2);
 
             left_padding += 1;
             start_row += 1;
         }
+
+        start_row += config_.layout.vertical_padding;
 
         if (current_state_ == NavigationState::SECTION_SELECTION) {
             render_section_selection(start_row, left_padding, content_width);
@@ -645,8 +649,9 @@ namespace tui {
             << center_string(std::string(config_.text.section_selection_title.length(), '='), content_width).content;
 
         // Sections
+        const int items_start_row = start_row + 2 + config_.layout.vertical_padding;
         for (size_t i = 0; i < sections_.size(); ++i) {
-            TerminalUtils::move_cursor(static_cast<int>(start_row + 3 + i), left_padding);
+            TerminalUtils::move_cursor(static_cast<int>(items_start_row + i), left_padding);
 
             if (i == current_selection_index_ && config_.theme.use_colors) {
                 apply_accent_color();
@@ -685,15 +690,16 @@ namespace tui {
         TerminalUtils::move_cursor(start_row + 1, left_padding);
         std::cout << center_string(std::string(title.length(), '='), content_width).content;
 
+        const int items_start_row = start_row + 2 + config_.layout.vertical_padding;
         // Items
         if (section.empty()) {
-            TerminalUtils::move_cursor(start_row + 3, left_padding);
+            TerminalUtils::move_cursor(items_start_row, left_padding);
             std::cout << center_string(config_.text.empty_section_message, content_width).content;
         } else {
             auto [first, second] = get_current_page_bounds();
 
             for (size_t i = first; i < second; ++i) {
-                TerminalUtils::move_cursor(static_cast<int>(start_row + 3 + (i - first)), left_padding);
+                TerminalUtils::move_cursor(static_cast<int>(items_start_row + (i - first)), left_padding);
 
                 if ((i - first) == current_selection_index_ && config_.theme.use_colors) {
                     apply_accent_color();
