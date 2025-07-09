@@ -40,11 +40,15 @@ int main() {
         // currently placeholder
         // I'll implement in the future
         .theme_colors(true)
-        .theme_accent_color(tui_extras::AccentColor::CYAN)
+        .theme_accent_color(AccentColor::CYAN)
 
         .layout_centering(true, // horizontal layout
                           true) // vertical layout
         .layout_items_per_page(3)
+
+        // layout padding (you can enable if you want)
+        // .layout_padding(2)
+
         .build()
         ->run();
 
