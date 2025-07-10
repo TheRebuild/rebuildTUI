@@ -8,16 +8,17 @@
 
 namespace tui {
     NavigationTUI::NavigationTUI() :
-        current_state_(NavigationState::SECTION_SELECTION), current_section_index_(0), current_selection_index_(0),
-        current_page_(0), running_(false), needs_redraw_(true), previous_width_{0}, previous_height_{0} {
+        current_state_(NavigationState::MAIN_MENU), current_section_index_(0), current_selection_index_(0),
+        current_page_(0), current_section_page_{0}, running_(false), needs_redraw_(true), previous_width_{0},
+        previous_height_{0} {
         config_ = Config{};
         terminal_manager_ = std::make_unique<TerminalManager>();
     }
 
     NavigationTUI::NavigationTUI(Config config) :
-        current_state_(NavigationState::SECTION_SELECTION), current_section_index_(0), current_selection_index_(0),
-        current_page_(0), config_(std::move(config)), running_(false), needs_redraw_(true), previous_width_{0},
-        previous_height_{0} {
+        current_state_(NavigationState::MAIN_MENU), current_section_index_(0), current_selection_index_(0),
+        current_page_(0), current_section_page_{0}, config_(std::move(config)), running_(false), needs_redraw_(true),
+        previous_width_{0}, previous_height_{0} {
         terminal_manager_ = std::make_unique<TerminalManager>();
     }
 
@@ -83,7 +84,7 @@ namespace tui {
         current_section_index_ = 0;
         current_selection_index_ = 0;
         current_page_ = 0;
-        current_state_ = NavigationState::SECTION_SELECTION;
+        current_state_ = NavigationState::MAIN_MENU;
     }
 
     void NavigationTUI::set_section_selected_callback(SectionSelectedCallback callback) {
@@ -143,8 +144,8 @@ namespace tui {
     size_t NavigationTUI::get_current_selection_index() const { return current_selection_index_; }
 
     void NavigationTUI::return_to_sections() {
-        if (current_state_ != NavigationState::SECTION_SELECTION) {
-            change_state(NavigationState::SECTION_SELECTION);
+        if (current_state_ != NavigationState::MAIN_MENU) {
+            change_state(NavigationState::MAIN_MENU);
             current_selection_index_ = current_section_index_;
             current_page_ = 0;
             needs_redraw_ = true;
@@ -169,9 +170,23 @@ namespace tui {
         }
     }
 
+    int NavigationTUI::get_sections_on_current_page() const {
+        const int start = current_section_page_ * config_.layout.sections_per_page;
+        const int end = std::min(start + config_.layout.sections_per_page, static_cast<int>(sections_.size()));
+        return end - start;
+    }
+
+    void NavigationTUI::go_to_section_page(const int page) {
+        if (const int total_pages = calculate_total_pages();
+            page >= 0 && page < total_pages && page != current_section_page_) {
+            current_section_page_ = page;
+            current_selection_index_ = 0;
+            needs_redraw_ = true;
+        }
+    }
+
     void NavigationTUI::go_to_page(const int page) {
-        int total_pages = calculate_total_pages();
-        if (page >= 0 && page < total_pages && page != current_page_) {
+        if (const int total_pages = calculate_total_pages(); page >= 0 && page < total_pages && page != current_page_) {
             current_page_ = page;
             current_selection_index_ = 0;
 
@@ -183,16 +198,27 @@ namespace tui {
         }
     }
 
-    void NavigationTUI::next_page() { go_to_page(current_page_ + 1); }
+    void NavigationTUI::next_page() {
+        if (current_state_ == NavigationState::MAIN_MENU) {
+            go_to_section_page(current_section_page_ + 1);
+        } else if (current_state_ == NavigationState::ITEM_SELECTION) {
+            go_to_page(current_page_ + 1);
+        }
+    }
 
-    void NavigationTUI::previous_page() { go_to_page(current_page_ - 1); }
+    void NavigationTUI::previous_page() {
+        if (current_state_ == NavigationState::MAIN_MENU) {
+            go_to_section_page(current_section_page_ - 1);
+        } else if (current_state_ == NavigationState::ITEM_SELECTION) {
+            go_to_page(current_page_ - 1);
+        }
+    }
 
     std::map<std::string, std::vector<std::string>> NavigationTUI::get_all_selections() const {
         std::map<std::string, std::vector<std::string>> selections;
 
         for (const auto &section : sections_) {
-            auto selected_items = section.get_selected_names();
-            if (!selected_items.empty()) {
+            if (auto selected_items = section.get_selected_names(); !selected_items.empty()) {
                 selections[section.name] = selected_items;
             }
         }
@@ -314,7 +340,7 @@ namespace tui {
         case TerminalUtils::Key::ENTER:
             if (current_state_ == NavigationState::ITEM_SELECTION) {
                 return_to_sections();
-            } else if (current_state_ == NavigationState::SECTION_SELECTION) {
+            } else if (current_state_ == NavigationState::MAIN_MENU) {
                 select_current_item();
             }
             break;
@@ -334,7 +360,7 @@ namespace tui {
                         needs_redraw_ = true;
                     }
                 }
-            } else if (current_state_ == NavigationState::SECTION_SELECTION && std::isdigit(character)) {
+            } else if (current_state_ == NavigationState::MAIN_MENU && std::isdigit(character)) {
                 handle_number_input(character);
             }
             break;
@@ -354,9 +380,12 @@ namespace tui {
     }
 
     void NavigationTUI::move_selection_up() {
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
             if (current_selection_index_ > 0) {
                 current_selection_index_--;
+            } else if (current_section_page_ > 0) {
+                go_to_section_page(current_section_page_ - 1);
+                current_selection_index_ = get_sections_on_current_page() - 1;
             }
         } else {
             if (current_selection_index_ > 0) {
@@ -364,8 +393,8 @@ namespace tui {
             } else {
                 if (current_page_ > 0) {
                     go_to_page(current_page_ - 1);
-                    auto bounds = get_current_page_bounds();
-                    current_selection_index_ = bounds.second - bounds.first - 1;
+                    auto [first, second] = get_current_page_bounds();
+                    current_selection_index_ = second - first - 1;
                 }
             }
         }
@@ -391,9 +420,13 @@ namespace tui {
     // }
 
     void NavigationTUI::move_selection_down() {
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
-            if (current_selection_index_ < sections_.size() - 1) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
+            if (const int items_on_page = get_sections_on_current_page();
+                static_cast<int>(current_selection_index_) < items_on_page - 1) {
                 current_selection_index_++;
+            } else if (current_section_page_ < calculate_total_pages() - 1) {
+                go_to_section_page(current_section_page_ + 1);
+                current_selection_index_ = 0;
             }
         } else {
             auto [first, second] = get_current_page_bounds();
@@ -401,18 +434,18 @@ namespace tui {
             if (const size_t items_on_page = second - first; current_selection_index_ < items_on_page - 1) {
                 current_selection_index_++;
             } else {
-                int total_pages = calculate_total_pages();
-                if (current_page_ < total_pages - 1) {
+                if (const int total_pages = calculate_total_pages(); current_page_ < total_pages - 1) {
                     go_to_page(current_page_ + 1);
                     current_selection_index_ = 0;
                 }
             }
         }
+
         needs_redraw_ = true;
     }
 
     void NavigationTUI::select_current_item() {
-        if (current_state_ == NavigationState::SECTION_SELECTION && current_selection_index_ < sections_.size()) {
+        if (current_state_ == NavigationState::MAIN_MENU && current_selection_index_ < sections_.size()) {
             enter_section(current_selection_index_);
         } else {
             toggle_current_item();
@@ -423,7 +456,7 @@ namespace tui {
         if (current_state_ == NavigationState::ITEM_SELECTION && current_section_index_ < sections_.size()) {
             auto [start, end] = get_current_page_bounds();
 
-            if (size_t global_index = start + current_selection_index_;
+            if (const size_t global_index = start + current_selection_index_;
                 sections_[current_section_index_].toggle_item(global_index)) {
                 if (on_item_toggled_) {
                     if (const auto *item = sections_[current_section_index_].get_item(global_index)) {
@@ -438,15 +471,19 @@ namespace tui {
     void NavigationTUI::handle_number_input(const char digit) {
         const int number = digit - '0';
 
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
             if (number > 0 && number <= static_cast<int>(sections_.size())) {
-                enter_section(number - 1);
+                const size_t global_index = number - 1;
+
+                current_section_page_ = static_cast<int>(global_index) / config_.layout.sections_per_page;
+                current_selection_index_ = global_index % config_.layout.sections_per_page;
+
+                enter_section(global_index);
+            } else if (config_.layout.paginate_sections && number > 0 && number <= calculate_total_pages()) {
+                go_to_section_page(number - 1);
             }
-        } else {
-            // Try to go to page
-            if (number > 0) {
-                go_to_page(number - 1);
-            }
+        } else if (current_state_ == NavigationState::ITEM_SELECTION && number > 0) {
+            go_to_page(number - 1);
         }
     }
 
@@ -467,7 +504,7 @@ namespace tui {
     int NavigationTUI::get_effective_content_height() const {
         auto content_height = 0;
 
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
             content_height = 3 + static_cast<int>(sections_.size()) + 2;
         } else if (current_section_index_ < sections_.size()) {
             auto [first, second] = get_current_page_bounds();
@@ -571,7 +608,7 @@ namespace tui {
         if (config_.layout.show_borders) {
             auto content_height = 0;
 
-            if (current_state_ == NavigationState::SECTION_SELECTION) {
+            if (current_state_ == NavigationState::MAIN_MENU) {
                 content_height = 3 + static_cast<int>(sections_.size()) + 2;
             } else if (current_section_index_ < sections_.size()) {
                 auto [first, second] = get_current_page_bounds();
@@ -587,7 +624,7 @@ namespace tui {
 
         start_row += config_.layout.vertical_padding;
 
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
             render_section_selection(start_row, left_padding, content_width);
         } else {
             render_item_selection(start_row, left_padding, content_width);
@@ -649,27 +686,33 @@ namespace tui {
             << center_string(std::string(config_.text.section_selection_title.length(), '='), content_width).content;
 
         // Sections
+        const auto start_index = current_section_page_ * config_.layout.sections_per_page;
+        const auto end_index =
+            std::min(start_index + config_.layout.sections_per_page, static_cast<int>(sections_.size()));
+        const auto items_on_page = end_index - start_index;
         const int items_start_row = start_row + 2 + config_.layout.vertical_padding;
-        for (size_t i = 0; i < sections_.size(); ++i) {
-            TerminalUtils::move_cursor(static_cast<int>(items_start_row + i), left_padding);
 
-            if (i == current_selection_index_ && config_.theme.use_colors) {
+        for (auto i = 0; i < items_on_page; ++i) {
+            const size_t global_index = start_index + i;
+            TerminalUtils::move_cursor(items_start_row + i, left_padding);
+
+            if (i == static_cast<int>(current_selection_index_) && config_.theme.use_colors) {
                 apply_accent_color();
             }
 
-            std::string display_text = std::to_string(i + 1) + ". " + sections_[i].name;
+            std::string display_text = std::format("{}. {}", global_index + 1, sections_[global_index].name);
 
             if (config_.text.show_counters) {
-                const size_t selected_count = sections_[i].get_selected_count();
-                if (const size_t total_count = sections_[i].size(); total_count > 0) {
+                const size_t selected_count = sections_[global_index].get_selected_count();
+                if (const size_t total_count = sections_[global_index].size(); total_count > 0) {
                     display_text += " (" + std::to_string(selected_count) + "/" + std::to_string(total_count) + ")";
                 }
             }
 
-            std::string prefix = (i == current_selection_index_) ? "> " : "  ";
+            std::string prefix = (i == static_cast<int>(current_selection_index_)) ? "> " : "  ";
             std::cout << center_string(prefix + display_text, content_width).content;
 
-            if (i == current_selection_index_ && config_.theme.use_colors) {
+            if (i == static_cast<int>(current_selection_index_) && config_.theme.use_colors) {
                 TerminalUtils::reset_formatting();
             }
         }
@@ -744,8 +787,11 @@ namespace tui {
 
         // footer (help text)
         std::string help_text;
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
+        if (current_state_ == NavigationState::MAIN_MENU) {
             help_text = config_.text.help_text_sections;
+            if (config_.layout.paginate_sections && config_.text.show_page_numbers) {
+                help_text += " | " + get_section_page_info_string();
+            }
         } else {
             help_text = config_.text.help_text_items;
             if (config_.text.show_page_numbers) {
@@ -769,12 +815,17 @@ namespace tui {
         }
     }
 
-    std::string NavigationTUI::format_item_with_theme(const SelectableItem &item, bool is_highlighted) const {
+    std::string NavigationTUI::format_item_with_theme(const SelectableItem &item, bool is_selected) const {
         const std::string prefix = item.selected ? config_.theme.selected_prefix : config_.theme.unselected_prefix;
         // TODO: maybe add configuration for highlighted prefix?
-        std::string display_text = std::format("{}{} {}", (is_highlighted) ? "> " : " ", prefix, item.name);
+        std::string display_text = std::format("{}{} {}", (is_selected) ? "> " : " ", prefix, item.name);
 
         return display_text;
+    }
+
+    std::string NavigationTUI::get_section_page_info_string() const {
+        const int total_pages = calculate_total_pages();
+        return std::format("Page {} of {}", current_section_page_ + 1, total_pages);
     }
 
     std::string NavigationTUI::get_page_info_string() const {
@@ -783,8 +834,11 @@ namespace tui {
     }
 
     int NavigationTUI::calculate_total_pages() const {
-        if (current_state_ == NavigationState::SECTION_SELECTION) {
-            return 1; // Sections don't paginate for now
+        if (current_state_ == NavigationState::MAIN_MENU) {
+            return (!config_.layout.paginate_sections || sections_.empty())
+                ? 1
+                : (static_cast<int>((sections_.size() + config_.layout.sections_per_page - 1)) /
+                   config_.layout.sections_per_page);
         }
 
         if (current_section_index_ < sections_.size()) {
@@ -811,7 +865,7 @@ namespace tui {
     }
 
     void NavigationTUI::clamp_selection() {
-        if (current_state_ == NavigationState::SECTION_SELECTION && current_section_index_ >= sections_.size()) {
+        if (current_state_ == NavigationState::MAIN_MENU && current_section_index_ >= sections_.size()) {
             current_selection_index_ = !sections_.empty() ? sections_.size() - 1 : 0;
         } else {
             auto [first, second] = get_current_page_bounds();
@@ -964,6 +1018,16 @@ namespace tui {
 
     NavigationBuilder &NavigationBuilder::layout_items_per_page(const int count) {
         config_.layout.items_per_page = count;
+        return *this;
+    }
+
+    NavigationBuilder &NavigationBuilder::layout_sections_per_page(const int count) {
+        config_.layout.sections_per_page = count;
+        return *this;
+    }
+
+    NavigationBuilder &NavigationBuilder::paginate_sections(const bool paginate) {
+        config_.layout.paginate_sections = paginate;
         return *this;
     }
 
