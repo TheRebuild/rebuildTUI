@@ -227,10 +227,6 @@ namespace tui {
     }
 
     std::vector<std::string> NavigationTUI::get_section_selections(const size_t section_index) const {
-        // if (section_index < sections_.size()) {
-        //     return sections_[section_index].get_selected_names();
-        // }
-        // return {};
         return (section_index < sections_.size()) ? sections_[section_index].get_selected_names()
                                                   : std::vector<std::string>{};
     }
@@ -283,14 +279,14 @@ namespace tui {
     }
 
     void NavigationTUI::process_events() {
-        auto [t_height, t_width] = TerminalManager::get_terminal_size();
-        if (t_width != previous_width_ || t_height != previous_height_) {
+        if (auto [t_height, t_width] = TerminalManager::get_terminal_size();
+            t_width != previous_width_ || t_height != previous_height_) {
             previous_width_ = t_width;
             previous_height_ = t_height;
             needs_redraw_ = true;
         }
 
-        if (auto key_event = TerminalManager::get_key_input(); key_event.has_value()) {
+        if (const auto key_event = TerminalManager::get_key_input(); key_event.has_value()) {
             handle_input(key_event->key, key_event->character);
         }
     }
@@ -401,24 +397,6 @@ namespace tui {
         needs_redraw_ = true;
     }
 
-    // void NavigationTUI::move_selection_down() {
-    //   size_t max_items = 0;
-
-    //   if (current_state_ == NavigationState::SECTION_SELECTION) {
-    //     max_items = sections_.size();
-    //   } else {
-    //     if (current_section_index_ < sections_.size()) {
-    //       auto bounds = get_current_page_bounds();
-    //       max_items = bounds.second - bounds.first;
-    //     }
-    //   }
-
-    //   if (current_selection_index_ + 1 < max_items) {
-    //     current_selection_index_++;
-    //     needs_redraw_ = true;
-    //   }
-    // }
-
     void NavigationTUI::move_selection_down() {
         if (current_state_ == NavigationState::MAIN_MENU) {
             if (const int items_on_page = get_sections_on_current_page();
@@ -473,9 +451,9 @@ namespace tui {
 
         if (current_state_ == NavigationState::MAIN_MENU) {
             if (number > 0 && number <= static_cast<int>(sections_.size())) {
-                const size_t global_index = number - 1;
+                const auto global_index = number - 1;
 
-                current_section_page_ = static_cast<int>(global_index) / config_.layout.sections_per_page;
+                current_section_page_ = global_index / config_.layout.sections_per_page;
                 current_selection_index_ = global_index % config_.layout.sections_per_page;
 
                 enter_section(global_index);
@@ -734,6 +712,7 @@ namespace tui {
         std::cout << center_string(std::string(title.length(), '='), content_width).content;
 
         const int items_start_row = start_row + 2 + config_.layout.vertical_padding;
+
         // Items
         if (section.empty()) {
             TerminalUtils::move_cursor(items_start_row, left_padding);
@@ -786,17 +765,12 @@ namespace tui {
         }
 
         // footer (help text)
-        std::string help_text;
-        if (current_state_ == NavigationState::MAIN_MENU) {
-            help_text = config_.text.help_text_sections;
-            if (config_.layout.paginate_sections && config_.text.show_page_numbers) {
-                help_text += " | " + get_section_page_info_string();
-            }
-        } else {
-            help_text = config_.text.help_text_items;
-            if (config_.text.show_page_numbers) {
-                help_text += " | " + get_page_info_string();
-            }
+        std::string help_text = (current_state_ == NavigationState::MAIN_MENU) ? config_.text.help_text_sections
+                                                                               : config_.text.help_text_items;
+        if ((current_state_ == NavigationState::MAIN_MENU && config_.layout.paginate_sections &&
+             config_.text.show_page_numbers) ||
+            (current_state_ == NavigationState::ITEM_SELECTION && config_.text.show_page_numbers)) {
+            help_text += " | " + get_page_info_string();
         }
 
         auto [help_content, help_line_count] = center_string(help_text, content_width);
@@ -815,7 +789,7 @@ namespace tui {
         }
     }
 
-    std::string NavigationTUI::format_item_with_theme(const SelectableItem &item, bool is_selected) const {
+    std::string NavigationTUI::format_item_with_theme(const SelectableItem &item, const bool is_selected) const {
         const std::string prefix = item.selected ? config_.theme.selected_prefix : config_.theme.unselected_prefix;
         // TODO: maybe add configuration for highlighted prefix?
         std::string display_text = std::format("{}{} {}", (is_selected) ? "> " : " ", prefix, item.name);
@@ -823,14 +797,12 @@ namespace tui {
         return display_text;
     }
 
-    std::string NavigationTUI::get_section_page_info_string() const {
-        const int total_pages = calculate_total_pages();
-        return std::format("Page {} of {}", current_section_page_ + 1, total_pages);
-    }
-
     std::string NavigationTUI::get_page_info_string() const {
         int total_pages = calculate_total_pages();
-        return std::format("Page {} of {}", current_page_ + 1, total_pages);
+        return std::format(
+            "Page {} of {}",
+            (current_state_ == NavigationState::MAIN_MENU) ? current_section_page_ + 1 : current_page_ + 1,
+            total_pages);
     }
 
     int NavigationTUI::calculate_total_pages() const {
@@ -857,9 +829,8 @@ namespace tui {
             return {0, 0};
         }
 
-        size_t item_count = sections_[current_section_index_].size();
         size_t start = current_page_ * config_.layout.items_per_page;
-        size_t end = std::min(start + config_.layout.items_per_page, item_count);
+        size_t end = std::min(start + config_.layout.items_per_page, sections_[current_section_index_].size());
 
         return {start, end};
     }
