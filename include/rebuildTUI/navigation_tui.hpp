@@ -16,7 +16,7 @@ namespace tui {
     class NavigationTUI {
     public:
         enum class NavigationState {
-            SECTION_SELECTION, ///< User is selecting a section
+            MAIN_MENU, ///< User is selecting a section (Main menu)
             ITEM_SELECTION ///< User is selecting/managing items within a section
         };
 
@@ -44,13 +44,14 @@ namespace tui {
             int max_content_width = 80; ///< Maximum width for content
             int min_content_width = 40; ///< Minimum width for content
 
-            // TODO: implement vertical padding
             int vertical_padding = 2; ///< Padding from top/bottom when centering
             bool auto_resize_content = true; ///< Automatically resize content to fit terminal
 
-            // TODO: implement show_borders
             bool show_borders = true; ///< Whether to show borders around content
             int items_per_page = 20; ///< Number of items to display per page
+
+            bool paginate_sections = true;
+            int sections_per_page = 15; ///< Number of sections to display per page
         };
 
         /**
@@ -99,6 +100,7 @@ namespace tui {
         size_t current_section_index_;
         size_t current_selection_index_;
         int current_page_;
+        int current_section_page_;
         Config config_;
         bool running_;
         bool needs_redraw_;
@@ -188,6 +190,8 @@ namespace tui {
         [[nodiscard]] int get_current_page() const;
         void return_to_sections();
         void enter_section(size_t section_index);
+        [[nodiscard]] int get_sections_on_current_page() const;
+        void go_to_section_page(int page);
         void go_to_page(int page);
         void next_page();
         void previous_page();
@@ -219,9 +223,8 @@ namespace tui {
         /**
          * @brief Horizontal centering to text
          */
-        [[nodiscard]] std::string apply_centering(const std::string &text) {
-            // TODO: Implement horizontal centering logic
-            if (!config_.layout.center_horizontally) { // oh fuck, oh fuck...
+        [[nodiscard]] std::string apply_centering(const std::string &text) const {
+            if (!config_.layout.center_horizontally) {
                 return text;
             }
 
@@ -296,6 +299,7 @@ namespace tui {
         // [[nodiscard]] std::vector<std::string> get_section_display_items() const;
         // [[nodiscard]] std::vector<std::string> get_current_item_display_items() const;
         [[nodiscard]] std::string format_item_with_theme(const SelectableItem &item, bool is_selected) const;
+        [[nodiscard]] std::string get_section_page_info_string() const;
         [[nodiscard]] std::string get_page_info_string() const;
         void apply_accent_color() const;
 
@@ -314,8 +318,6 @@ namespace tui {
          * @brief State management
          */
         void change_state(NavigationState new_state);
-        void refresh_display(); // TODO: implement this automatic resizing window
-        void trigger_callbacks(); // TODO: ???
 
         /**
          * @brief Utility methods
@@ -374,6 +376,8 @@ namespace tui {
         NavigationBuilder &layout_auto_resize(bool enable);
         NavigationBuilder &layout_borders(bool show);
         NavigationBuilder &layout_items_per_page(int count);
+        NavigationBuilder &layout_sections_per_page(int count);
+        NavigationBuilder &paginate_sections(bool paginate);
 
         /**
          * @brief Text configuration methods
