@@ -299,7 +299,6 @@ namespace tui {
         // [[nodiscard]] std::vector<std::string> get_section_display_items() const;
         // [[nodiscard]] std::vector<std::string> get_current_item_display_items() const;
         [[nodiscard]] std::string format_item_with_theme(const SelectableItem &item, bool is_selected) const;
-        [[nodiscard]] std::string get_section_page_info_string() const;
         [[nodiscard]] std::string get_page_info_string() const;
         void apply_accent_color() const;
 
