@@ -46,8 +46,13 @@ int main() {
                           true) // vertical layout
         .layout_items_per_page(3)
 
+        // show 2 sections per page on main menu
+        .layout_sections_per_page(2)
+        // and paginate it
+        .paginate_sections(true)
+
         // layout padding (you can enable if you want)
-        // .layout_padding(2)
+        // .layout_padding(3)
 
         .build()
         ->run();
