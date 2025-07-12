@@ -2,7 +2,7 @@
 
 namespace tui_extras {
     enum class BorderStyle { ROUNDED, DOUBLE, SHARP, ASCII };
-  
+
     enum class AccentColor {
         CYAN,
         BLUE,
@@ -18,5 +18,17 @@ namespace tui_extras {
         BRIGHT_YELLOW,
         BRIGHT_MAGENTA,
         BRIGHT_WHITE
+    };
+
+    enum class GradientPreset {
+        NONE,
+        WARM_TO_COLD, // From orange to cyan
+        RED_TO_GREEN,
+        BLUE_TO_PURPLE,
+        SUNSET, // Red -> orange -> violet
+        OCEAN,  // Blue to turquoise
+        FOREST, // Green to yellow-green
+        FIRE,   // Red to yellow
+        RAINBOW // Rainbow
     };
 } // namespace tui_extras

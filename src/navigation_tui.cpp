@@ -735,7 +735,7 @@ namespace tui {
             for (size_t i = first; i < second; ++i) {
                 TerminalUtils::move_cursor(static_cast<int>(items_start_row + (i - first)), left_padding);
 
-                if ((i - first) == current_selection_index_ && config_.theme.use_colors) {
+                if (i - first == current_selection_index_ && config_.theme.use_colors) {
                     apply_accent_color();
                 }
 
@@ -745,7 +745,7 @@ namespace tui {
                     std::cout << center_string(display_text, content_width).content;
                 }
 
-                if ((i - first) == current_selection_index_ && config_.theme.use_colors) {
+                if (i - first == current_selection_index_ && config_.theme.use_colors) {
                     TerminalUtils::reset_formatting();
                 }
             }
