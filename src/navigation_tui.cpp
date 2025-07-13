@@ -2,7 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <thread>
 #include <utility>
+
 #include "styles.hpp"
 #include "terminal_utils.hpp"
 
@@ -119,11 +121,11 @@ namespace tui {
         running_ = true;
 
         while (running_) {
-            if (needs_redraw_) {
-                render();
-                needs_redraw_ = false;
-            }
+            render();
             process_events();
+
+            // FIXME: is there any fix to way this out?
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         terminal_manager_->restore_terminal();
@@ -133,7 +135,10 @@ namespace tui {
         }
     }
 
-    void NavigationTUI::exit() { running_ = false; }
+    void NavigationTUI::exit() {
+        running_ = false;
+        std::cin.clear();
+    }
 
     NavigationTUI::NavigationState NavigationTUI::get_current_state() const { return current_state_; }
 
@@ -560,6 +565,10 @@ namespace tui {
     }
 
     void NavigationTUI::render() {
+        if (!needs_redraw_) {
+            return;
+        }
+
         TerminalManager::clear_screen();
 
         auto [term_height, term_width] = TerminalManager::get_terminal_size();
@@ -620,6 +629,8 @@ namespace tui {
 
         render_footer(term_height, left_padding, content_width, current_item);
         TerminalManager::flush_output();
+
+        needs_redraw_ = false;
     }
 
     void NavigationTUI::render_header(int /*term_width*/, const int content_width, const std::string &title) {
@@ -630,6 +641,7 @@ namespace tui {
         std::cout << separator << "\n\n";
     }
 
+    // TODO: simplify this
     void NavigationTUI::apply_accent_color() const {
         static const std::map<tui_extras::AccentColor, TerminalUtils::Color> color_map = {
             {tui_extras::AccentColor::CYAN, TerminalUtils::Color::CYAN},
@@ -1196,7 +1208,6 @@ namespace tui {
             tui->set_state_changed_callback(state_changed_callback_);
         }
         if (exit_callback_) {
-            std::cin.clear();
             tui->set_exit_callback(exit_callback_);
         }
         if (custom_command_callback_) {
