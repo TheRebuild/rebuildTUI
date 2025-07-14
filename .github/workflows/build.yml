@@ -32,12 +32,22 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
 
-      - name: Configure CMake
-        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      - name: Configure CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
 
-      - name: Build with CMake
-        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      - name: Configure CMake (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
+
+      - name: Build with CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: cmake --build build --config Release --parallel
+
+      - name: Build with CMake (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         run: cmake --build build --config Release --parallel
 
       - name: Archive examples
