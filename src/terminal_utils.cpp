@@ -173,6 +173,25 @@ namespace tui {
 #endif
     }
 
+    void TerminalUtils::set_color_rgb(uint8_t r, uint8_t g, uint8_t b) {
+#ifdef _WIN32
+        printf("\033[38;2;%d;%d;%dm", r, g, b);
+#else
+        std::cout << std::format("\033[38;2;{};{};{};m", static_cast<int>(r), static_cast<int>(g), static_cast<int>(b));
+#endif
+        flush();
+    }
+
+    void TerminalUtils::set_color_rgb(tui_extras::GradientColor &color) {
+        auto &[r, g, b] = color.get_color();
+        set_color_rgb(r, g, b);
+    }
+
+    void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
+        auto [r, g, b] = color.get_color();
+        set_color_rgb(r, g, b);
+    }
+
     void TerminalUtils::set_style(Style style) {
 #ifdef _WIN32
         // Windows console doesn't support all styles, so we'll do our best
