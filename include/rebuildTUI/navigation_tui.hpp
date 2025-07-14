@@ -366,6 +366,8 @@ namespace tui {
         NavigationBuilder &theme_prefixes(const std::string &selected, const std::string &unselected);
         NavigationBuilder &theme_unicode(bool enable);
         NavigationBuilder &theme_colors(bool enable);
+        NavigationBuilder &theme_gradient_support(bool enable);
+        NavigationBuilder &theme_gradient_preset(const tui_extras::GradientPreset &preset);
         NavigationBuilder &theme_border_style(const tui_extras::BorderStyle &style);
         NavigationBuilder &theme_accent_color(const tui_extras::AccentColor &color);
 
