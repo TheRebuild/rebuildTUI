@@ -2,7 +2,6 @@
 #include <algorithm>
 
 #ifndef _WIN32
-#include <asm-generic/ioctls.h>
 #include <sys/ioctl.h>
 #endif
 

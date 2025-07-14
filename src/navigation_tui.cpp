@@ -1,5 +1,6 @@
 #include "navigation_tui.hpp"
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <sstream>
 #include <thread>
