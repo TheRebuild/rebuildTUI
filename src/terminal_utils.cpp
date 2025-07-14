@@ -182,11 +182,6 @@ namespace tui {
         flush();
     }
 
-    void TerminalUtils::set_color_rgb(tui_extras::GradientColor &color) {
-        auto &[r, g, b] = color.get_color();
-        set_color_rgb(r, g, b);
-    }
-
     void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
         auto [r, g, b] = color.get_color();
         set_color_rgb(r, g, b);
