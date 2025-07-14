@@ -49,7 +49,9 @@ namespace tui_extras {
         }
 
         static std::vector<GradientColor> from_preset(const GradientPreset preset, const int steps) {
-            std::vector gradient(steps, GradientColor());
+            std::vector<GradientColor> gradient;
+            gradient.reserve(steps);
+
             std::vector<GradientColor> color_points;
 
             switch (preset) {
@@ -83,20 +85,28 @@ namespace tui_extras {
                 };
                 break;
             case GradientPreset::RAINBOW:
-                for (auto i = 0; i < steps; i++) {
-                    const auto pos = static_cast<float>(i) / static_cast<float>(steps);
-                    const auto r = static_cast<uint8_t>(std::sin(0.3 * pos + 0) * 127 + 128);
-                    const auto g = static_cast<uint8_t>(std::sin(0.3 * pos + 2) * 127 + 128);
-                    const auto b = static_cast<uint8_t>(std::sin(0.3 * pos + 4) * 127 + 128);
-                    gradient.emplace_back(r, g, b);
-                    // gradient.emplace_back(static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b));
-                }
-                return gradient;
+                color_points = {
+                    GradientColor{255, 0, 0},   // Red
+                    GradientColor{255, 255, 0}, // Yellow
+                    GradientColor{0, 255, 0},   // Green
+                    GradientColor{0, 255, 255}, // Cyan
+                    GradientColor{0, 0, 255},   // Blue
+                    GradientColor{255, 0, 255}, // Magenta
+                    GradientColor{255, 0, 0}    // Red
+                };
+                break;
             default:
                 return {GradientColor{255, 255, 255}};
             }
 
             const int segments = static_cast<int>(color_points.size()) - 1;
+            if (segments <= 0) {
+                for (auto i = 0; i < steps; ++i) {
+                    gradient.push_back(color_points.empty() ? GradientColor{} : color_points.front());
+                }
+                return gradient;
+            }
+
             const auto segment_steps = static_cast<float>(steps) / static_cast<float>(segments);
 
             for (auto seg = 0; seg < segments; seg++) {
@@ -105,10 +115,13 @@ namespace tui_extras {
 
                 const auto seg_start = static_cast<int>(static_cast<float>(seg) * segment_steps);
                 const auto seg_end = static_cast<int>(static_cast<float>(seg + 1) * segment_steps);
-                const int seg_steps = seg_end - seg_start;
+
+                const int final_seg_end = std::min(seg_end, steps);
+                const int seg_steps = final_seg_end - seg_start;
 
                 for (auto i = 0; i < seg_steps; i++) {
-                    const float ratio = static_cast<float>(i) / static_cast<float>(seg_steps);
+                    const float ratio =
+                        (seg_steps > 1) ? static_cast<float>(i) / static_cast<float>(seg_steps - 1) : 0.0f;
                     auto [s_r, s_g, s_b] = start.get_color();
                     auto [e_r, e_g, e_b] = end.get_color();
                     auto r = static_cast<uint8_t>(static_cast<float>(s_r) + ratio * static_cast<float>(e_r - s_r));
