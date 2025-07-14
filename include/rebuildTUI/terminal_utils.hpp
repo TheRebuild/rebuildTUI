@@ -106,7 +106,6 @@ namespace tui {
 
         // Gradient
         static void set_color_rgb(uint8_t r, uint8_t g, uint8_t b);
-        static void set_color_rgb(tui_extras::GradientColor &color);
         static void set_color_rgb(tui_extras::GradientColor color);
 
         static void set_style(Style style);
