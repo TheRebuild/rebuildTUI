@@ -16,7 +16,7 @@ jobs:
             runner: ubuntu-latest
             artifact_name: examples-linux-clang
 
-          - name: "Windows (MinGW Cross-Compile)"
+          - name: "Windows (MinGW Native)"
             runner: windows-latest
             artifact_name: examples-windows-mingw
 
@@ -36,7 +36,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang
 
-      - name: Installing Dependencies (Windows)
+      - name: Setup MSYS2 with MinGW (Windows)
         if: matrix.runner == 'windows-latest'
         uses: msys2/setup-msys2@v2
         with:
@@ -46,17 +46,22 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
 
-      - name: Configure CMake
-        shell: ${{ matrix.runner == 'windows-latest' && 'msys2 {0}' || 'bash' }}
-        run: |
-          if [ "${{ matrix.runner }}" == "windows-latest" ]; then
-            cmake -B build -S . -G "MinGW Makefiles" -DBUILD_EXAMPLES=ON
-          else
-            cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
-          fi
+      - name: Configure CMake (Windows)
+        if: matrix.runner == 'windows-latest'
+        shell: msys2 {0}
+        run: cmake -B build -S . -G "MinGW Makefiles" -DBUILD_EXAMPLES=ON
 
-      - name: Build with CMake
-        shell: ${{ matrix.runner == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      - name: Configure CMake (Linux)
+        if: matrix.runner == 'ubuntu-latest'
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
+
+      - name: Build with CMake (Windows)
+        if: matrix.runner == 'windows-latest'
+        shell: msys2 {0}
+        run: cmake --build build --config Release --parallel
+
+      - name: Build with CMake (Linux)
+        if: matrix.runner == 'ubuntu-latest'
         run: cmake --build build --config Release --parallel
 
       - name: Archive examples
