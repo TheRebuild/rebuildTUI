@@ -174,11 +174,11 @@ namespace tui {
     }
 
     void TerminalUtils::set_color_rgb(uint8_t r, uint8_t g, uint8_t b) {
-#ifdef _WIN32
-        printf("\033[38;2;%d;%d;%dm", r, g, b);
-#else
-        std::cout << std::format("\033[38;2;{};{};{};m", static_cast<int>(r), static_cast<int>(g), static_cast<int>(b));
-#endif
+// #ifdef _WIN32
+//         printf("\033[38;2;%d;%d;%dm", r, g, b);
+// #else
+        std::cout << std::format("\033[38;2;{};{};{}m", static_cast<int>(r), static_cast<int>(g), static_cast<int>(b));
+// #endif
         flush();
     }
 
