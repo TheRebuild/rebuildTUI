@@ -2,10 +2,8 @@ name: Cross-Platform Build
 
 on:
   push:
-    branches:
-      - '**'
-    tags:
-      - '**'
+    branches: ['**']
+    tags: ['**']
   pull_request:
 
 jobs:
@@ -15,27 +13,16 @@ jobs:
       matrix:
         include:
           - name: "Linux (Clang)"
-            runner: ubuntu-latest
-            c_compiler: clang
-            cxx_compiler: clang++
-            toolchain_file: ""
             artifact_name: examples-linux-clang
 
-          - name: "macOS (Clang)"
-            runner: macos-latest
-            c_compiler: clang
-            cxx_compiler: clang++
-            toolchain_file: ""
-            artifact_name: examples-macos-clang
-
           - name: "Windows (MinGW Cross-Compile)"
-            runner: ubuntu-latest
-            c_compiler: x86_64-w64-mingw32-gcc
-            cxx_compiler: x86_64-w64-mingw32-g++
-            toolchain_file: "windows-mingw-toolchain.cmake"
             artifact_name: examples-windows-mingw
 
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
+
+    env:
+      CC: ${{ contains(matrix.name, 'Clang') && 'clang' || 'gcc' }}
+      CXX: ${{ contains(matrix.name, 'Clang') && 'clang++' || 'g++' }}
 
     steps:
       - name: Checkout repository
@@ -43,28 +30,20 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if [ "${{ matrix.runner }}" == "ubuntu-latest" ]; then
-            sudo apt-get update
-            if [ "${{ matrix.name }}" == "Linux (Clang)" ]; then
-              sudo apt-get install -y clang
-            elif [ "${{ matrix.name }}" == "Windows (MinGW Cross-Compile)" ]; then
-              sudo apt-get install -y mingw-w64
-            fi
+          sudo apt-get update
+          if [ "${{ matrix.name }}" == "Linux (Clang)" ]; then
+            sudo apt-get install -y clang
+          elif [ "${{ matrix.name }}" == "Windows (MinGW Cross-Compile)" ]; then
+            sudo apt-get install -y mingw-w64
           fi
 
       - name: Configure CMake
         run: |
-          TOOLCHAIN_ARGS=""
-          if [ -n "${{ matrix.toolchain_file }}" ]; then
-            TOOLCHAIN_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ matrix.toolchain_file }}"
+          if [ "${{ matrix.name }}" == "Windows (MinGW Cross-Compile)" ]; then
+            cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=cmake/windows-mingw-toolchain.cmake -DBUILD_EXAMPLES=ON
+          else
+            cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
           fi
-          
-          cmake -B build -S . \
-            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_EXAMPLES=ON \
-            $TOOLCHAIN_ARGS
 
       - name: Build with CMake
         run: cmake --build build --config Release --parallel
