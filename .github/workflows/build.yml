@@ -13,12 +13,14 @@ jobs:
       matrix:
         include:
           - name: "Linux (Clang)"
+            runner: ubuntu-latest
             artifact_name: examples-linux-clang
 
           - name: "Windows (MinGW Cross-Compile)"
+            runner: windows-latest
             artifact_name: examples-windows-mingw
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
 
     env:
       CC: ${{ contains(matrix.name, 'Clang') && 'clang' || 'gcc' }}
@@ -29,31 +31,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Dependencies (Linux)
+        if: matrix.runner == 'ubuntu-latest'
         run: |
           sudo apt-get update
-            sudo apt-get install -y clang
+          sudo apt-get install -y clang
 
       - name: Installing Dependencies (Windows)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y p7zip-full
-          
-          WINLIBS_URL="https://github.com/brechtsanders/winlibs_mingw/releases/download/15.1.0posix-13.0.0-msvcrt-r3/winlibs-x86_64-posix-seh-gcc-15.1.0-mingw-w64msvcrt-13.0.0-r3.7z"
-          
-          wget -q -O mingw64.7z "$WINLIBS_URL"
-          7z x mingw64.7z > /dev/null
-          echo "$(pwd)/mingw64/bin" >> $GITHUB_PATH
-          x86_64-w64-mingw32-g++ --version
+        if: matrix.runner == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
 
       - name: Configure CMake
+        shell: ${{ matrix.runner == 'windows-latest' && 'msys2 {0}' || 'bash' }}
         run: |
-          if [ "${{ matrix.name }}" == "Windows (MinGW Cross-Compile)" ]; then
-            cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=cmake/windows-mingw-toolchain.cmake -DBUILD_EXAMPLES=ON
+          if [ "${{ matrix.runner }}" == "windows-latest" ]; then
+            cmake -B build -S . -G "MinGW Makefiles" -DBUILD_EXAMPLES=ON
           else
             cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
           fi
 
       - name: Build with CMake
+        shell: ${{ matrix.runner == 'windows-latest' && 'msys2 {0}' || 'bash' }}
         run: cmake --build build --config Release --parallel
 
       - name: Archive examples
