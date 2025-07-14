@@ -13,45 +13,64 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - name: "Linux (Clang)"
+            runner: ubuntu-latest
+            c_compiler: clang
+            cxx_compiler: clang++
+            toolchain_file: ""
+            artifact_name: examples-linux-clang
 
-    runs-on: ${{ matrix.os }}
+          - name: "macOS (Clang)"
+            runner: macos-latest
+            c_compiler: clang
+            cxx_compiler: clang++
+            toolchain_file: ""
+            artifact_name: examples-macos-clang
+
+          - name: "Windows (MinGW Cross-Compile)"
+            runner: ubuntu-latest
+            c_compiler: x86_64-w64-mingw32-gcc
+            cxx_compiler: x86_64-w64-mingw32-g++
+            toolchain_file: "windows-mingw-toolchain.cmake"
+            artifact_name: examples-windows-mingw
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up MSYS2 (for MinGW on Windows)
-        if: matrix.os == 'windows-latest'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            git
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-cmake
+      - name: Install Dependencies
+        run: |
+          if [ "${{ matrix.runner }}" == "ubuntu-latest" ]; then
+            sudo apt-get update
+            if [ "${{ matrix.name }}" == "Linux (Clang)" ]; then
+              sudo apt-get install -y clang
+            elif [ "${{ matrix.name }}" == "Windows (MinGW Cross-Compile)" ]; then
+              sudo apt-get install -y mingw-w64
+            fi
+          fi
 
-      - name: Configure CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
+      - name: Configure CMake
+        run: |
+          TOOLCHAIN_ARGS=""
+          if [ -n "${{ matrix.toolchain_file }}" ]; then
+            TOOLCHAIN_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ matrix.toolchain_file }}"
+          fi
+          
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_EXAMPLES=ON \
+            $TOOLCHAIN_ARGS
 
-      - name: Configure CMake (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON
-
-      - name: Build with CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: cmake --build build --config Release --parallel
-
-      - name: Build with CMake (Linux/macOS)
-        if: matrix.os != 'windows-latest'
+      - name: Build with CMake
         run: cmake --build build --config Release --parallel
 
       - name: Archive examples
         uses: actions/upload-artifact@v4
         with:
-          name: examples-${{ matrix.os }}
+          name: ${{ matrix.artifact_name }}
           path: build/bin/
