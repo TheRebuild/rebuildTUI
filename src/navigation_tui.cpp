@@ -666,6 +666,23 @@ namespace tui {
         }
     }
 
+    void NavigationTUI::apply_gradient_text(const std::string &text, const int row, const int col) const {
+        if (!config_.theme.gradient_enabled || config_.theme.gradient_preset == tui_extras::GradientPreset::NONE) {
+            return;
+        }
+
+        const auto steps = static_cast<int>(text.length());
+        auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
+
+        for (auto i = 0; i < steps; i++) {
+            TerminalUtils::move_cursor(row, col + i);
+            // TerminalUtils::set_color_rgb(gradient[i]);
+            std::cout << text[i];
+        }
+
+        TerminalUtils::reset_formatting();
+    }
+
     void NavigationTUI::render_section_selection(const int start_row, const int left_padding, const int content_width) {
         // Header
         TerminalUtils::move_cursor(start_row, left_padding);

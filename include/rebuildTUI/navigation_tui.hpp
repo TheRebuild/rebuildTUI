@@ -16,7 +16,7 @@ namespace tui {
     class NavigationTUI {
     public:
         enum class NavigationState {
-            MAIN_MENU, ///< User is selecting a section (Main menu)
+            MAIN_MENU,     ///< User is selecting a section (Main menu)
             ITEM_SELECTION ///< User is selecting/managing items within a section
         };
 
@@ -24,15 +24,17 @@ namespace tui {
          * @brief Display theme configuration
          */
         struct Theme {
-            char selected_indicator = '*'; ///< Character for selected items
-            char unselected_indicator = ' '; ///< Character for unselected items
-            std::string selected_prefix = "✓ "; ///< Prefix for selected items
+            char selected_indicator = '*';        ///< Character for selected items
+            char unselected_indicator = ' ';      ///< Character for unselected items
+            std::string selected_prefix = "✓ ";   ///< Prefix for selected items
             std::string unselected_prefix = "  "; ///< Prefix for unselected items
-            bool use_unicode = true; ///< Whether to use Unicode characters
-            bool use_colors = true; ///< Whether to use ANSI colors
+            bool use_unicode = true;              ///< Whether to use Unicode characters
+            bool use_colors = true;               ///< Whether to use ANSI colors
+            bool gradient_enabled = false;        ///< Enable gradient support
             tui_extras::BorderStyle border_style =
                 tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
             tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
+            tui_extras::GradientPreset gradient_preset = tui_extras::GradientPreset::NONE; ///< Gradient preset
         };
 
         /**
@@ -40,15 +42,15 @@ namespace tui {
          */
         struct Layout {
             bool center_horizontally = true; ///< Center content horizontally on screen
-            bool center_vertically = true; ///< Center content vertically on screen
-            int max_content_width = 80; ///< Maximum width for content
-            int min_content_width = 40; ///< Minimum width for content
+            bool center_vertically = true;   ///< Center content vertically on screen
+            int max_content_width = 80;      ///< Maximum width for content
+            int min_content_width = 40;      ///< Minimum width for content
 
-            int vertical_padding = 2; ///< Padding from top/bottom when centering
+            int vertical_padding = 2;        ///< Padding from top/bottom when centering
             bool auto_resize_content = true; ///< Automatically resize content to fit terminal
 
             bool show_borders = true; ///< Whether to show borders around content
-            int items_per_page = 20; ///< Number of items to display per page
+            int items_per_page = 20;  ///< Number of items to display per page
 
             bool paginate_sections = true;
             int sections_per_page = 15; ///< Number of sections to display per page
@@ -65,9 +67,9 @@ namespace tui {
             std::string help_text_items =
                 "Space - toggle | Enter - select | b/Esc - back | "
                 "1-9 - page";
-            bool show_help_text = true; ///< Whether to show help text
+            bool show_help_text = true;    ///< Whether to show help text
             bool show_page_numbers = true; ///< Whether to show page navigation info
-            bool show_counters = true; ///< Whether to show selection counters
+            bool show_counters = true;     ///< Whether to show selection counters
         };
 
         /**
@@ -80,8 +82,8 @@ namespace tui {
 
             // Shortcuts
             std::map<char, std::string> custom_shortcuts; ///< Custom keyboard shortcuts
-            bool enable_quick_select = true; ///< Enable number keys for quick selection
-            bool enable_vim_keys = false; ///< Enable vim-style navigation (hjkl)
+            bool enable_quick_select = true;              ///< Enable number keys for quick selection
+            bool enable_vim_keys = false;                 ///< Enable vim-style navigation (hjkl)
         };
 
         /**
@@ -301,6 +303,7 @@ namespace tui {
         [[nodiscard]] std::string format_item_with_theme(const SelectableItem &item, bool is_selected) const;
         [[nodiscard]] std::string get_page_info_string() const;
         void apply_accent_color() const;
+        void apply_gradient_text(const std::string &text, int row, int col) const;
 
         /**
          * @brief Layout calculation
