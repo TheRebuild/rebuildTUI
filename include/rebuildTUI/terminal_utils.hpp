@@ -9,6 +9,9 @@
 #ifdef _WIN32
 #include <conio.h>
 #include <windows.h>
+#ifdef DELETE
+#undef DELETE
+#endif
 #else
 #include <termios.h>
 #endif
