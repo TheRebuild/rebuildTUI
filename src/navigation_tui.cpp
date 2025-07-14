@@ -672,11 +672,11 @@ namespace tui {
         }
 
         const auto steps = static_cast<int>(text.length());
-        auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
+        const auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
 
         for (auto i = 0; i < steps; i++) {
             TerminalUtils::move_cursor(row, col + i);
-            // TerminalUtils::set_color_rgb(gradient[i]);
+            TerminalUtils::set_color_rgb(gradient[i]);
             std::cout << text[i];
         }
 
