@@ -474,6 +474,7 @@ namespace tui {
 
         std::cout << '+';
 
+
         // Side borders
         for (int i = 1; i < height - 1; ++i) {
             move_cursor(top_row + i, left_col);
