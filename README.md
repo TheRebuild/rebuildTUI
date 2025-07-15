@@ -1,36 +1,37 @@
 # rebuildTui (TUI for Rebuild Tool) [WIP]
 
-Simple, cross-platform (should be) text-based user interface (TUI) library. Initially created for Rebuild Tool, but also suitable for other applications.
+Simple, cross-platform text-based user interface (TUI) library. Initially created for Rebuild Tool, but also suitable
+for other applications.
 
 - [rebuildTui (TUI for Rebuild Tool) \[WIP\]](#rebuildtui-tui-for-rebuild-tool-wip)
-  - [Key Features](#key-features)
-  - [Dependencies](#dependencies)
-  - [Quick Start](#quick-start)
-    - [Basic Example](#basic-example)
-    - [Build Instructions \& Integration](#build-instructions--integration)
-  - [Manual build](#manual-build)
-      - [Header-Only Integration (applies for manual build)](#header-only-integration-applies-for-manual-build)
-      - [CMake Integration](#cmake-integration)
-  - [Examples](#examples)
-  - [Contributing](#contributing)
-  - [License](#license)
-
+    - [Key Features](#key-features)
+    - [Dependencies](#dependencies)
+    - [Quick Start](#quick-start)
+        - [Basic Example](#basic-example)
+        - [Build Instructions \& Integration](#build-instructions--integration)
+    - [Manual build](#manual-build)
+        - [Header-Only Integration (applies for manual build)](#header-only-integration-applies-for-manual-build)
+        - [CMake Integration](#cmake-integration)
+    - [Examples](#examples)
+    - [Contributing](#contributing)
+    - [License](#license)
 
 ## Key Features
 
 - **Easy to use**: This library provides a Fluent-like builder for quick setup and customization
-- **Hierarchical Organization**: Sections with nested selectable items
 - **Customizable Themes**: Multiple built-in themes + custom styling (real custom theming will be implemented soon)
-- **Keyboard Navigation**: Intuitive controls with vim-style shortcuts (note: vim-style shortcuts are optional and you should enable them)
-- **Realtime Callbacks**: Event handlers for all user interactions
-- **Smart Pagination**: Automatic pagination for large datasets
-- ~~**Compatibility**: Works on Windows, Linux~~ (Need recheck if it works on Windows)
-- **Selection Tracking**: Built-in counters and selection management
+    - Including **Gradient support**, **Accent colors**
+- **Keyboard Navigation**: Intuitive controls with vim-style shortcuts (note: vim-style shortcuts are optional and you
+  should enable them)
+- **Custom handlers**: You can write a function to control user interactions
+- **Smart Pagination**: Automatic pagination with specified limits
+- **Compatibility**: Works on Windows and Linux (macOS support will be added later)
+- **Other**: Built-in counters and selection management
 
 ## Dependencies
 
 - Cmake 3.20+
-- С++20 and later
+- С++23 and later (Note: C++20 will add once I don't be a lazy af and will combine with fmt and format (std) libraries)
 
 ## Quick Start
 
@@ -82,6 +83,7 @@ int main() {
 ### Build Instructions & Integration
 
 ## Manual build
+
 ```bash
 git clone https://github.com/TheRebuild/rebuildTUI
 
@@ -96,19 +98,21 @@ cmake --build .
 ```cpp
 #include "rebuildTUI/navigation_tui.hpp"
 #include "rebuildTUI/section_builder.hpp"
+#include "rebuildTUI/styles.hpp" // access to tui_extras namespace (accent color and gradient support)
 ```
 
 #### CMake Integration
 
 ##### Latest (development)
+
 ```cmake
 include(FetchContent)
 
 FetchContent_Declare(
-    rebuildtui
-    GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
-    GIT_TAG main
-    GIT_SHALLOW TRUE
+        rebuildtui
+        GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
+        GIT_TAG main
+        GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(rebuildtui)
@@ -118,13 +122,14 @@ target_link_libraries(example_app PRIVATE rebuildTUI::rebuildTUI)
 ```
 
 ##### Stable
+
 ```cmake
 include(FetchContent)
 
 FetchContent_Declare(
-    rebuildtui
-    GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
-    GIT_TAG v0.0.6
+        rebuildtui
+        GIT_REPOSITORY https://github.com/TheRebuild/rebuildtui.git
+        GIT_TAG v0.0.6
 )
 
 FetchContent_MakeAvailable(rebuildtui)
@@ -132,7 +137,6 @@ FetchContent_MakeAvailable(rebuildtui)
 add_executable(example_app main.cpp)
 target_link_libraries(example_app PRIVATE rebuildTUI::rebuildTUI)
 ```
-
 
 ## Examples
 
