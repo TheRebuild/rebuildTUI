@@ -53,17 +53,24 @@ int main() {
         .theme_gradient_support(true) // Enable gradient support
         /*
          *  Available presets
+         *
+         *  NOTE: v_styles => std::vector<std::tuple<uint8_t, uint8_t, uint8_t>>
+         *
          *  GradientPreset::RAINBOW
          *  GradientPreset::BLUE_TO_PURPLE
          *  GradientPreset::RED_TO_GREEN
-         *  GradientPreset::FIRE            - Red to yellow
-         *  GradientPreset::FOREST          - Green to yellow-green
-         *  GradientPreset::OCEAN           - Blue to turquoise
-         *  GradientPreset::WARM_TO_COLD    - From orange to cyan
-         *  GradientPreset::SUNSET          - Red -> orange -> violet
-         *  GradientPreset::NONE            - None (by default)
+         *  GradientPreset::FIRE                        - Red to yellow
+         *  GradientPreset::FOREST                      - Green to yellow-green
+         *  GradientPreset::OCEAN                       - Blue to turquoise
+         *  GradientPreset::WARM_TO_COLD                - From orange to cyan
+         *  GradientPreset::SUNSET                      - Red -> orange -> violet
+         *  GradientPreset::CUSTOM(v_styles{r, g, b})   - custom colors (vector of rgb styles)
+         *  GradientPreset::NONE                        - None (by default)
          */
-        .theme_gradient_preset(GradientPreset::RAINBOW)
+        .theme_gradient_preset(GradientPreset::CUSTOM(v_styles{{255, 0, 0}, // red
+                                                               {0, 255, 0}, // green
+                                                               {0, 0, 255}} // blue
+                                                      ))
 
         // layout padding (you can enable if you want)
         // .layout_padding(3)
