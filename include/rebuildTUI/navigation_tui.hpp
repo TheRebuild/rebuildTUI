@@ -34,7 +34,7 @@ namespace tui {
             tui_extras::BorderStyle border_style =
                 tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
             tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
-            tui_extras::GradientPreset gradient_preset = tui_extras::GradientPreset::NONE; ///< Gradient preset
+            tui_extras::GradientPreset gradient_preset = tui_extras::GradientPreset::NONE(); ///< Gradient preset
         };
 
         /**

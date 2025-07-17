@@ -8,6 +8,9 @@
 #include <vector>
 
 namespace tui_extras {
+    using color = std::tuple<uint8_t, uint8_t, uint8_t>;
+    using v_styles = std::vector<color>;
+
     enum class BorderStyle { ROUNDED, DOUBLE, SHARP, ASCII };
 
     enum class AccentColor {
@@ -27,17 +30,58 @@ namespace tui_extras {
         BRIGHT_WHITE
     };
 
-    enum class GradientPreset {
-        NONE,
-        WARM_TO_COLD, // From orange to cyan
-        RED_TO_GREEN,
-        BLUE_TO_PURPLE,
-        SUNSET, // Red -> orange -> violet
-        OCEAN,  // Blue to turquoise
-        FOREST, // Green to yellow-green
-        FIRE,   // Red to yellow
-        RAINBOW // Rainbow
+    class GradientPreset {
+    public:
+        // Basic presets
+        static GradientPreset NONE() { return GradientPreset(PresetType::NONE); }
+        static GradientPreset WARM_TO_COLD() { return GradientPreset(PresetType::WARM_TO_COLD); }
+        static GradientPreset RED_TO_GREEN() { return GradientPreset(PresetType::RED_TO_GREEN); }
+        static GradientPreset BLUE_TO_PURPLE() { return GradientPreset(PresetType::BLUE_TO_PURPLE); }
+        static GradientPreset SUNSET() { return GradientPreset(PresetType::SUNSET); }
+        static GradientPreset OCEAN() { return GradientPreset(PresetType::OCEAN); }
+        static GradientPreset FOREST() { return GradientPreset(PresetType::FOREST); }
+        static GradientPreset FIRE() { return GradientPreset(PresetType::FIRE); }
+        static GradientPreset RAINBOW() { return GradientPreset(PresetType::RAINBOW); }
+
+        // Custom presets
+        static GradientPreset CUSTOM(uint8_t r, uint8_t g, uint8_t b) {
+            GradientPreset preset(PresetType::CUSTOM);
+            preset.custom_colors_ = {{r, g, b}};
+            return preset;
+        }
+        static GradientPreset CUSTOM(const v_styles& colors) {
+            GradientPreset preset(PresetType::CUSTOM);
+            preset.custom_colors_ = colors;
+            return preset;
+        }
+
+        enum class PresetType {
+            NONE,
+            RED_TO_GREEN,
+            BLUE_TO_PURPLE,
+            WARM_TO_COLD, // From orange to cyan
+            SUNSET,       // Red -> orange -> violet
+            OCEAN,        // Blue to turquoise
+            FOREST,       // Green to yellow-green
+            FIRE,         // Red to yellow
+            RAINBOW,      // Rainbow
+            CUSTOM,       // Custom
+        };
+
+        [[nodiscard]] PresetType type() const { return type_; }
+        [[nodiscard]] const v_styles& custom_colors() const { return custom_colors_; }
+
+        bool operator==(const GradientPreset& other) const {
+            return type_ == other.type_ && custom_colors_ == other.custom_colors_;
+        }
+
+    private:
+        explicit GradientPreset(const PresetType type) : type_(type) {}
+
+        PresetType type_;
+        v_styles custom_colors_;
     };
+
 
     class GradientColor {
     public:
@@ -50,43 +94,43 @@ namespace tui_extras {
             this->b_ = b;
         }
 
-        static std::vector<GradientColor> from_preset(const GradientPreset preset, const int steps) {
+        static std::vector<GradientColor> from_preset(const GradientPreset& preset, const int steps) {
             std::vector<GradientColor> gradient;
             gradient.reserve(steps);
 
             std::vector<GradientColor> color_points;
 
-            switch (preset) {
-            case GradientPreset::WARM_TO_COLD:
+            switch (preset.type()) {
+            case GradientPreset::PresetType::WARM_TO_COLD:
                 color_points = {GradientColor{255, 10, 0}, GradientColor{255, 255, 200}, GradientColor{100, 200, 255}};
                 break;
-            case GradientPreset::RED_TO_GREEN:
+            case GradientPreset::PresetType::RED_TO_GREEN:
                 color_points = {GradientColor{255, 50, 50}, GradientColor{255, 255, 100}, GradientColor{50, 255, 50}};
                 break;
-            case GradientPreset::BLUE_TO_PURPLE:
+            case GradientPreset::PresetType::BLUE_TO_PURPLE:
                 color_points = {GradientColor{50, 100, 255}, GradientColor{150, 50, 255}, GradientColor{255, 50, 255}};
                 break;
-            case GradientPreset::SUNSET:
+            case GradientPreset::PresetType::SUNSET:
                 color_points = {GradientColor{255, 0, 100}, GradientColor{255, 100, 0}, GradientColor{150, 0, 255}};
                 break;
-            case GradientPreset::OCEAN:
+            case GradientPreset::PresetType::OCEAN:
                 color_points = {GradientColor{0, 50, 150}, GradientColor{0, 150, 255}, GradientColor{0, 255, 255}};
                 break;
-            case GradientPreset::FOREST:
+            case GradientPreset::PresetType::FOREST:
                 color_points = {
                     GradientColor{0, 100, 0},
                     GradientColor{50, 200, 50},
                     GradientColor{150, 255, 100},
                 };
                 break;
-            case GradientPreset::FIRE:
+            case GradientPreset::PresetType::FIRE:
                 color_points = {
                     GradientColor{255, 0, 0},
                     GradientColor{255, 100, 0},
                     GradientColor{255, 255, 0},
                 };
                 break;
-            case GradientPreset::RAINBOW:
+            case GradientPreset::PresetType::RAINBOW:
                 color_points = {
                     GradientColor{255, 0, 0},   // Red
                     GradientColor{255, 255, 0}, // Yellow
@@ -99,8 +143,21 @@ namespace tui_extras {
 
                 std::ranges::shuffle(color_points, std::mt19937(std::random_device()()));
                 break;
+            case GradientPreset::PresetType::CUSTOM:
+                {
+                    if (const auto& custom_colors = preset.custom_colors(); custom_colors.empty()) {
+                        color_points = {GradientColor{255, 255, 255}};
+                    } else {
+                        for (const auto& color : custom_colors) {
+                            auto [r, g, b] = color;
+                            color_points.emplace_back(r, g, b);
+                        }
+                    }
+                    break;
+                }
+            case GradientPreset::PresetType::NONE:
             default:
-                return {GradientColor{255, 255, 255}};
+                return std::vector(steps, GradientColor{255, 255, 255});
             }
 
             const int segments = static_cast<int>(color_points.size()) - 1;
@@ -146,9 +203,7 @@ namespace tui_extras {
             return gradient;
         }
 
-        [[nodiscard]] std::tuple<uint8_t, uint8_t, uint8_t> get_color() const {
-            return std::make_tuple(this->r_, this->g_, this->b_);
-        }
+        [[nodiscard]] color get_color() const { return std::make_tuple(this->r_, this->g_, this->b_); }
 
     private:
         uint8_t r_;
