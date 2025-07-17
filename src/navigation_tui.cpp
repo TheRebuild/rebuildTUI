@@ -721,7 +721,7 @@ namespace tui {
 
             if (i == static_cast<int>(current_selection_index_)) {
                 if (config_.theme.gradient_enabled &&
-                    config_.theme.gradient_preset != tui_extras::GradientPreset::NONE) {
+                    config_.theme.gradient_preset != tui_extras::GradientPreset::NONE()) {
                     std::cout << t_content;
 
                     apply_gradient_text(text, items_start_row + i, centered_col);
@@ -773,19 +773,19 @@ namespace tui {
                 const auto [content, line_count] = center_string(display_text, content_width);
                 const auto centered_col = left_padding + (content_width - static_cast<int>(display_text.length())) / 2;
 
-                if (!(i - first == current_selection_index_)) {
+                if (i - first != current_selection_index_) {
                     std::cout << content;
-                    return;
-                }
-
-                if (config_.theme.gradient_enabled) {
-                    apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)), centered_col);
                 } else {
-                    if (config_.theme.use_colors) {
-                        apply_accent_color();
+                    if (config_.theme.gradient_enabled) {
+                        apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)),
+                                            centered_col);
+                    } else {
+                        if (config_.theme.use_colors) {
+                            apply_accent_color();
+                        }
+                        std::cout << content;
+                        TerminalUtils::reset_formatting();
                     }
-                    std::cout << content;
-                    TerminalUtils::reset_formatting();
                 }
             }
         }
