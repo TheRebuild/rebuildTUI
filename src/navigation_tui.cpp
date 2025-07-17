@@ -738,6 +738,7 @@ namespace tui {
         }
     }
 
+    // TODO: refactor if-else statements
     void NavigationTUI::render_item_selection(const int start_row, const int left_padding, const int content_width) {
         if (current_section_index_ >= sections_.size()) {
             return;
@@ -759,23 +760,31 @@ namespace tui {
         if (section.empty()) {
             TerminalUtils::move_cursor(items_start_row, left_padding);
             std::cout << center_string(config_.text.empty_section_message, content_width).content;
-        } else {
-            auto [first, second] = get_current_page_bounds();
+            return;
+        }
 
-            for (size_t i = first; i < second; ++i) {
-                TerminalUtils::move_cursor(static_cast<int>(items_start_row + (i - first)), left_padding);
+        auto [first, second] = get_current_page_bounds();
 
-                if (i - first == current_selection_index_ && config_.theme.use_colors) {
-                    apply_accent_color();
+        for (size_t i = first; i < second; ++i) {
+            TerminalUtils::move_cursor(static_cast<int>(items_start_row + (i - first)), left_padding);
+
+            if (const auto *item = section.get_item(i)) {
+                std::string display_text = format_item_with_theme(*item, (i - first) == current_selection_index_);
+                const auto [content, line_count] = center_string(display_text, content_width);
+                const auto centered_col = left_padding + (content_width - static_cast<int>(display_text.length())) / 2;
+
+                if (!(i - first == current_selection_index_)) {
+                    std::cout << content;
+                    return;
                 }
 
-                if (const auto *item = section.get_item(i)) {
-                    std::string display_text = format_item_with_theme(*item, (i - first) == current_selection_index_);
-
-                    std::cout << center_string(display_text, content_width).content;
-                }
-
-                if (i - first == current_selection_index_ && config_.theme.use_colors) {
+                if (config_.theme.gradient_enabled) {
+                    apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)), centered_col);
+                } else {
+                    if (config_.theme.use_colors) {
+                        apply_accent_color();
+                    }
+                    std::cout << content;
                     TerminalUtils::reset_formatting();
                 }
             }
