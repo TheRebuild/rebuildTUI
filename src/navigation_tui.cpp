@@ -1,12 +1,11 @@
 #include "navigation_tui.hpp"
-#include <algorithm>
-#include <iostream>
+#include "styles.hpp"
+#include "terminal_utils.hpp"
+
+#include <random>
 #include <sstream>
 #include <thread>
 #include <utility>
-
-#include "styles.hpp"
-#include "terminal_utils.hpp"
 
 namespace tui {
     NavigationTUI::NavigationTUI() :
@@ -672,7 +671,11 @@ namespace tui {
             return;
         }
 
-        const auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
+        auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
+
+        if (config_.theme.gradient_randomize) {
+            std::ranges::shuffle(gradient, std::mt19937(std::random_device()()));
+        }
 
         TerminalUtils::move_cursor(row, col);
 
@@ -1008,6 +1011,11 @@ namespace tui {
 
     NavigationBuilder &NavigationBuilder::theme_gradient_preset(const tui_extras::GradientPreset &preset) {
         config_.theme.gradient_preset = preset;
+        return *this;
+    }
+
+    NavigationBuilder &NavigationBuilder::theme_gradient_randomize(const bool enable) {
+        config_.theme.gradient_randomize = enable;
         return *this;
     }
 

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <random>
 #include <tuple>
 #include <vector>
 
@@ -140,8 +139,6 @@ namespace tui_extras {
                     GradientColor{255, 0, 255}, // Magenta
                     GradientColor{255, 0, 0}    // Red
                 };
-
-                std::ranges::shuffle(color_points, std::mt19937(std::random_device()()));
                 break;
             case GradientPreset::PresetType::CUSTOM:
                 {

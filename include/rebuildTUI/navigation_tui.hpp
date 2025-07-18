@@ -31,6 +31,7 @@ namespace tui {
             bool use_unicode = true;              ///< Whether to use Unicode characters
             bool use_colors = true;               ///< Whether to use ANSI colors
             bool gradient_enabled = false;        ///< Enable gradient support
+            bool gradient_randomize = false;      ///< Randomize gradients
             tui_extras::BorderStyle border_style =
                 tui_extras::BorderStyle::ROUNDED; ///< Border style: "rounded", "sharp", "double" and "ascii"
             tui_extras::AccentColor accent_color = tui_extras::AccentColor::CYAN; ///< Accent color for highlights
@@ -368,6 +369,7 @@ namespace tui {
         NavigationBuilder &theme_colors(bool enable);
         NavigationBuilder &theme_gradient_support(bool enable);
         NavigationBuilder &theme_gradient_preset(const tui_extras::GradientPreset &preset);
+        NavigationBuilder &theme_gradient_randomize(bool enable);
         NavigationBuilder &theme_border_style(const tui_extras::BorderStyle &style);
         NavigationBuilder &theme_accent_color(const tui_extras::AccentColor &color);
 

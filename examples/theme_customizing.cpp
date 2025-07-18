@@ -50,7 +50,8 @@ int main() {
         .layout_sections_per_page(2)
         // and paginate it
         .paginate_sections(true)
-        .theme_gradient_support(true) // Enable gradient support
+        .theme_gradient_support(true)    // Enable gradient support
+        .theme_gradient_randomize(false) // Randomize gradient
         /*
          *  Available presets
          *
