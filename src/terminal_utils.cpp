@@ -624,6 +624,10 @@ namespace tui {
             }
         }
         is_wt = std::getenv("WT_SESSION") ? true : false;
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+
+        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #else
         if (tcgetattr(STDIN_FILENO, &original_termios) == 0) {
             termios_saved = true;
