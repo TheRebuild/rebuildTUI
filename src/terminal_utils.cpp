@@ -1,8 +1,9 @@
 #include "terminal_utils.hpp"
-#include <algorithm>
-#include <asm-generic/ioctls.h>
-#include <iostream>
+
+#ifndef _WIN32
 #include <sys/ioctl.h>
+#endif
+
 #include <unistd.h>
 
 namespace tui {
@@ -12,6 +13,7 @@ namespace tui {
     HANDLE TerminalUtils::hConsole = INVALID_HANDLE_VALUE;
     CONSOLE_SCREEN_BUFFER_INFO TerminalUtils::csbi = {};
     DWORD TerminalUtils::originalConsoleMode = 0;
+    bool TerminalUtils::is_wt = false;
 #else
     termios TerminalUtils::original_termios = {};
     bool TerminalUtils::termios_saved = false;
@@ -171,6 +173,26 @@ namespace tui {
 
         flush();
 #endif
+    }
+
+    void TerminalUtils::set_color_rgb(uint8_t r, uint8_t g, uint8_t b) {
+        // #ifdef _WIN32
+        //         printf("\033[38;2;%d;%d;%dm", r, g, b);
+        // #else
+        std::cout << std::format("\033[38;2;{};{};{}m", static_cast<int>(r), static_cast<int>(g), static_cast<int>(b));
+        // #endif
+        flush();
+    }
+
+    void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
+#ifdef _WIN32
+        if (!is_wt) {
+            return;
+        }
+#endif
+
+        auto [r, g, b] = color.get_color();
+        set_color_rgb(r, g, b);
     }
 
     void TerminalUtils::set_style(Style style) {
@@ -349,7 +371,7 @@ namespace tui {
                     return {Key::PAGE_DOWN, 0};
                 case '3':
                     get_key();
-                    return {Key::DELETE, 0};
+                    return {Key::KEY_DELETE, 0};
                 default:
                     return {Key::UNKNOWN, 0};
                 }
@@ -391,7 +413,7 @@ namespace tui {
             case 81:
                 return {Key::PAGE_DOWN, 0};
             case 83:
-                return {Key::DELETE, 0};
+                return {Key::KEY_DELETE, 0};
             default:
                 return {Key::UNKNOWN, 0};
             }
@@ -601,6 +623,11 @@ namespace tui {
                 SetConsoleMode(hInput, ENABLE_PROCESSED_INPUT);
             }
         }
+        is_wt = std::getenv("WT_SESSION") ? true : false;
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+
+        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #else
         if (tcgetattr(STDIN_FILENO, &original_termios) == 0) {
             termios_saved = true;
