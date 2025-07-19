@@ -109,11 +109,6 @@ namespace tui {
 #endif
     }
 
-    bool TerminalUtils::is_windows_terminal() {
-        const auto terminal = std::getenv("WT_SESSION");
-        return terminal && *terminal;
-    }
-
     void TerminalUtils::set_color(Color color) {
 #ifdef _WIN32
         if (hConsole != INVALID_HANDLE_VALUE) {
@@ -191,7 +186,6 @@ namespace tui {
 
     void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
 #ifdef _WIN32
-        // const bool is_wt = is_windows_terminal();
         if (!is_wt) {
             return;
         }
@@ -629,7 +623,7 @@ namespace tui {
                 SetConsoleMode(hInput, ENABLE_PROCESSED_INPUT);
             }
         }
-        is_wt = is_windows_terminal();
+        is_wt = std::getenv("WT_SESSION") ? true : false;
 #else
         if (tcgetattr(STDIN_FILENO, &original_termios) == 0) {
             termios_saved = true;
