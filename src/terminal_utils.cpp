@@ -371,7 +371,7 @@ namespace tui {
                     return {Key::PAGE_DOWN, 0};
                 case '3':
                     get_key();
-                    return {Key::DELETE, 0};
+                    return {Key::KEY_DELETE, 0};
                 default:
                     return {Key::UNKNOWN, 0};
                 }
@@ -413,7 +413,7 @@ namespace tui {
             case 81:
                 return {Key::PAGE_DOWN, 0};
             case 83:
-                return {Key::DELETE, 0};
+                return {Key::KEY_DELETE, 0};
             default:
                 return {Key::UNKNOWN, 0};
             }

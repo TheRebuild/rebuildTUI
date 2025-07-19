@@ -36,7 +36,7 @@ namespace tui {
             END = 11,
             PAGE_UP = 12,
             PAGE_DOWN = 13,
-            DELETE = 14,
+            KEY_DELETE = 14,
             KEY_J = 15,
             KEY_K = 16,
             KEY_H = 17,
