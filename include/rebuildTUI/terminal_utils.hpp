@@ -1,10 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include <optional>
-#include <string>
-
 #include "styles.hpp"
+
+#include <iostream>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -104,6 +102,8 @@ namespace tui {
         static std::pair<int, int> get_terminal_size();
         static void set_color(Color color);
 
+        static bool is_windows_terminal();
+
         // Gradient
         static void set_color_rgb(uint8_t r, uint8_t g, uint8_t b);
         static void set_color_rgb(tui_extras::GradientColor color);
@@ -150,6 +150,7 @@ namespace tui {
         static HANDLE hConsole;
         static CONSOLE_SCREEN_BUFFER_INFO csbi;
         static DWORD originalConsoleMode;
+        static bool is_wt;
 #else
         static struct termios original_termios;
         static bool termios_saved;

@@ -1,8 +1,9 @@
 #include "terminal_utils.hpp"
-#include <algorithm>
-#include <asm-generic/ioctls.h>
-#include <iostream>
+
+#ifndef _WIN32
 #include <sys/ioctl.h>
+#endif
+
 #include <unistd.h>
 
 namespace tui {
@@ -12,6 +13,7 @@ namespace tui {
     HANDLE TerminalUtils::hConsole = INVALID_HANDLE_VALUE;
     CONSOLE_SCREEN_BUFFER_INFO TerminalUtils::csbi = {};
     DWORD TerminalUtils::originalConsoleMode = 0;
+    bool TerminalUtils::is_wt = false;
 #else
     termios TerminalUtils::original_termios = {};
     bool TerminalUtils::termios_saved = false;
@@ -107,6 +109,11 @@ namespace tui {
 #endif
     }
 
+    bool TerminalUtils::is_windows_terminal() {
+        const auto terminal = std::getenv("WT_SESSION");
+        return terminal && *terminal;
+    }
+
     void TerminalUtils::set_color(Color color) {
 #ifdef _WIN32
         if (hConsole != INVALID_HANDLE_VALUE) {
@@ -174,15 +181,22 @@ namespace tui {
     }
 
     void TerminalUtils::set_color_rgb(uint8_t r, uint8_t g, uint8_t b) {
-// #ifdef _WIN32
-//         printf("\033[38;2;%d;%d;%dm", r, g, b);
-// #else
+        // #ifdef _WIN32
+        //         printf("\033[38;2;%d;%d;%dm", r, g, b);
+        // #else
         std::cout << std::format("\033[38;2;{};{};{}m", static_cast<int>(r), static_cast<int>(g), static_cast<int>(b));
-// #endif
+        // #endif
         flush();
     }
 
     void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
+#ifdef _WIN32
+        // const bool is_wt = is_windows_terminal();
+        if (!is_wt) {
+            return;
+        }
+#endif
+
         auto [r, g, b] = color.get_color();
         set_color_rgb(r, g, b);
     }
@@ -615,6 +629,7 @@ namespace tui {
                 SetConsoleMode(hInput, ENABLE_PROCESSED_INPUT);
             }
         }
+        is_wt = is_windows_terminal();
 #else
         if (tcgetattr(STDIN_FILENO, &original_termios) == 0) {
             termios_saved = true;
