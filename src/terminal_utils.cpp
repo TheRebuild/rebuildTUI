@@ -175,6 +175,72 @@ namespace tui {
 #endif
     }
 
+    void TerminalUtils::set_color(tui_extras::AccentColor color) {
+#ifdef _WIN32
+        if (hConsole != INVALID_HANDLE_VALUE) {
+            WORD attributes = 0;
+            switch (color) {
+            case Color::BLACK:
+                attributes = 0;
+                break;
+            case Color::RED:
+                attributes = FOREGROUND_RED;
+                break;
+            case Color::GREEN:
+                attributes = FOREGROUND_GREEN;
+                break;
+            case Color::YELLOW:
+                attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+                break;
+            case Color::BLUE:
+                attributes = FOREGROUND_BLUE;
+                break;
+            case Color::MAGENTA:
+                attributes = FOREGROUND_RED | FOREGROUND_BLUE;
+                break;
+            case Color::CYAN:
+                attributes = FOREGROUND_GREEN | FOREGROUND_BLUE;
+                break;
+            case Color::WHITE:
+                attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                break;
+            case Color::BRIGHT_BLACK:
+                attributes = FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_RED:
+                attributes = FOREGROUND_RED | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_GREEN:
+                attributes = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_YELLOW:
+                attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_BLUE:
+                attributes = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_MAGENTA:
+                attributes = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_CYAN:
+                attributes = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                break;
+            case Color::BRIGHT_WHITE:
+                attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                break;
+            default:
+                attributes = csbi.wAttributes;
+                break;
+            }
+            SetConsoleTextAttribute(hConsole, attributes);
+        }
+#else
+        std::cout << std::format("\033[{}m", (color == tui_extras::AccentColor::RESET) ? 0 : static_cast<int>(color));
+
+        flush();
+#endif
+    }
+
     void TerminalUtils::set_color_rgb(uint8_t r, uint8_t g, uint8_t b) {
         // #ifdef _WIN32
         //         printf("\033[38;2;%d;%d;%dm", r, g, b);
