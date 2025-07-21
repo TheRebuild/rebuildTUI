@@ -640,31 +640,6 @@ namespace tui {
         std::cout << separator << "\n\n";
     }
 
-    // TODO: simplify this
-    void NavigationTUI::apply_accent_color() const {
-        static const std::map<tui_extras::AccentColor, TerminalUtils::Color> color_map = {
-            {tui_extras::AccentColor::CYAN, TerminalUtils::Color::CYAN},
-            {tui_extras::AccentColor::BLUE, TerminalUtils::Color::BLUE},
-            {tui_extras::AccentColor::GREEN, TerminalUtils::Color::GREEN},
-            {tui_extras::AccentColor::RED, TerminalUtils::Color::RED},
-            {tui_extras::AccentColor::YELLOW, TerminalUtils::Color::YELLOW},
-            {tui_extras::AccentColor::MAGENTA, TerminalUtils::Color::MAGENTA},
-            {tui_extras::AccentColor::WHITE, TerminalUtils::Color::WHITE},
-            {tui_extras::AccentColor::BRIGHT_CYAN, TerminalUtils::Color::BRIGHT_CYAN},
-            {tui_extras::AccentColor::BRIGHT_BLUE, TerminalUtils::Color::BRIGHT_BLUE},
-            {tui_extras::AccentColor::BRIGHT_GREEN, TerminalUtils::Color::BRIGHT_GREEN},
-            {tui_extras::AccentColor::BRIGHT_RED, TerminalUtils::Color::BRIGHT_RED},
-            {tui_extras::AccentColor::BRIGHT_YELLOW, TerminalUtils::Color::BRIGHT_YELLOW},
-            {tui_extras::AccentColor::BRIGHT_MAGENTA, TerminalUtils::Color::BRIGHT_MAGENTA},
-            {tui_extras::AccentColor::BRIGHT_WHITE, TerminalUtils::Color::BRIGHT_WHITE}};
-
-        if (const auto it = color_map.find(config_.theme.accent_color); it != color_map.end()) {
-            TerminalUtils::set_color(it->second);
-        } else {
-            TerminalUtils::set_color(TerminalUtils::Color::CYAN);
-        }
-    }
-
     void NavigationTUI::apply_gradient_text(const std::string &text, const int row, const int col) const {
         const auto steps = static_cast<int>(text.length());
         if (steps == 0) {
@@ -729,7 +704,7 @@ namespace tui {
 
                     apply_gradient_text(text, items_start_row + i, centered_col);
                 } else if (config_.theme.use_colors) {
-                    apply_accent_color();
+                    TerminalUtils::set_color(config_.theme.accent_color);
                     std::cout << t_content;
                     TerminalUtils::reset_formatting();
                 } else {
@@ -784,7 +759,7 @@ namespace tui {
                                             centered_col);
                     } else {
                         if (config_.theme.use_colors) {
-                            apply_accent_color();
+                            TerminalUtils::set_color(config_.theme.accent_color);
                         }
                         std::cout << content;
                         TerminalUtils::reset_formatting();
