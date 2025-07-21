@@ -1,13 +1,8 @@
 #pragma once
 
-#include <algorithm>
-#include <any>
-#include <format>
-#include <functional>
-#include <string>
-#include <utility>
-#include <vector>
 #include "selectable_item.hpp"
+
+#include <algorithm>
 
 namespace tui {
 
@@ -19,8 +14,8 @@ namespace tui {
      */
     class Section {
     public:
-        std::string name; ///< Name of the section
-        std::string description; ///< Optional description of the section
+        std::string name;                  ///< Name of the section
+        std::string description;           ///< Optional description of the section
         std::vector<SelectableItem> items; ///< Collection of selectable items in this section
 
         /**
