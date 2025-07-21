@@ -1,8 +1,8 @@
 #pragma once
 
+#include "styles.hpp"
+
 #include <iostream>
-#include <optional>
-#include <string>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -36,7 +36,7 @@ namespace tui {
             END = 11,
             PAGE_UP = 12,
             PAGE_DOWN = 13,
-            DELETE = 14,
+            KEY_DELETE = 14,
             KEY_J = 15,
             KEY_K = 16,
             KEY_H = 17,
@@ -101,6 +101,12 @@ namespace tui {
         static void show_cursor();
         static std::pair<int, int> get_terminal_size();
         static void set_color(Color color);
+        static void set_color(tui_extras::AccentColor color);
+
+        // Gradient
+        static void set_color_rgb(uint8_t r, uint8_t g, uint8_t b);
+        static void set_color_rgb(tui_extras::GradientColor color);
+
         static void set_style(Style style);
         static void reset_formatting();
 
@@ -143,6 +149,7 @@ namespace tui {
         static HANDLE hConsole;
         static CONSOLE_SCREEN_BUFFER_INFO csbi;
         static DWORD originalConsoleMode;
+        static bool is_wt;
 #else
         static struct termios original_termios;
         static bool termios_saved;
