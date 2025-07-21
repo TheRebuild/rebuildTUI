@@ -641,6 +641,10 @@ namespace tui {
     }
 
     void NavigationTUI::apply_gradient_text(const std::string &text, const int row, const int col) const {
+        if (!config_.theme.gradient_enabled) {
+            return;
+        }
+
         const auto steps = static_cast<int>(text.length());
         if (steps == 0) {
             return;
@@ -716,7 +720,6 @@ namespace tui {
         }
     }
 
-    // TODO: refactor if-else statements
     void NavigationTUI::render_item_selection(const int start_row, const int left_padding, const int content_width) {
         if (current_section_index_ >= sections_.size()) {
             return;
@@ -745,27 +748,26 @@ namespace tui {
 
         for (size_t i = first; i < second; ++i) {
             TerminalUtils::move_cursor(static_cast<int>(items_start_row + (i - first)), left_padding);
+            const auto *item = section.get_item(i);
 
-            if (const auto *item = section.get_item(i)) {
-                std::string display_text = format_item_with_theme(*item, (i - first) == current_selection_index_);
-                const auto [content, line_count] = center_string(display_text, content_width);
-                const auto centered_col = left_padding + (content_width - static_cast<int>(display_text.length())) / 2;
-
-                if (i - first != current_selection_index_) {
-                    std::cout << content;
-                } else {
-                    if (config_.theme.gradient_enabled) {
-                        apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)),
-                                            centered_col);
-                    } else {
-                        if (config_.theme.use_colors) {
-                            TerminalUtils::set_color(config_.theme.accent_color);
-                        }
-                        std::cout << content;
-                        TerminalUtils::reset_formatting();
-                    }
-                }
+            if (!item) {
+                return;
             }
+
+            std::string display_text = format_item_with_theme(*item, (i - first) == current_selection_index_);
+            const auto [content, line_count] = center_string(display_text, content_width);
+            const auto centered_col = left_padding + (content_width - static_cast<int>(display_text.length())) / 2;
+
+            if (i - first != current_selection_index_) {
+                std::cout << content;
+            } else if (config_.theme.use_colors) {
+                TerminalUtils::set_color(config_.theme.accent_color);
+                std::cout << content;
+                TerminalUtils::reset_formatting();
+            } else {
+                apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)), centered_col);
+            }
+
         }
     }
 
