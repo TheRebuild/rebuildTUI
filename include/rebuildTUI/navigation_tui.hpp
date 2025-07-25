@@ -1,13 +1,12 @@
 #pragma once
 
-#include <functional>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
+
 #include "section.hpp"
 #include "styles.hpp"
 #include "terminal_utils.hpp"
+
+#include <map>
+#include <memory>
 
 namespace tui {
     /**
