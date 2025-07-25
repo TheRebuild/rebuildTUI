@@ -1,12 +1,8 @@
 #pragma once
 
-#include <any>
-#include <functional>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
 #include "section.hpp"
+
+#include <memory>
 
 namespace tui {
 
