@@ -6,7 +6,7 @@
 #include <styles.hpp>
 
 using namespace tui;
-using namespace tui_extras;
+// using namespace tui;
 
 int main() {
     auto theme_section = SectionBuilder("Theme Settings")
@@ -35,12 +35,12 @@ int main() {
 
         // Set custom layout borders
         .layout_borders(true)
-        .theme_border_style(BorderStyle::ROUNDED)
+        .theme_border_style(extras::BorderStyle::ROUNDED)
 
         // currently placeholder
         // I'll implement in the future
         .theme_colors(true)
-        .theme_accent_color(AccentColor::CYAN)
+        .theme_accent_color(extras::AccentColor::CYAN)
 
         .layout_centering(true, // horizontal layout
                           true) // vertical layout
@@ -55,7 +55,7 @@ int main() {
         /*
          *  Available presets
          *
-         *  NOTE: v_styles => std::vector<std::tuple<uint8_t, uint8_t, uint8_t>>
+         *  NOTE: extras::v_styles => std::vector<std::tuple<uint8_t, uint8_t, uint8_t>>
          *
          *  GradientPreset::RAINBOW
          *  GradientPreset::BLUE_TO_PURPLE
@@ -68,10 +68,10 @@ int main() {
          *  GradientPreset::CUSTOM(v_styles{r, g, b})   - custom colors (vector of rgb styles)
          *  GradientPreset::NONE                        - None (by default)
          */
-        .theme_gradient_preset(GradientPreset::CUSTOM(v_styles{{255, 0, 0}, // red
-                                                               {0, 255, 0}, // green
-                                                               {0, 0, 255}} // blue
-                                                      ))
+        .theme_gradient_preset(extras::GradientPreset::CUSTOM(extras::v_styles{{255, 0, 0}, // red
+                                                                               {0, 255, 0}, // green
+                                                                               {0, 0, 255}} // blue
+                                                              ))
 
         // layout padding (you can enable if you want)
         // .layout_padding(3)

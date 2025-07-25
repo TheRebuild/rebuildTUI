@@ -701,19 +701,13 @@ namespace tui {
 
             TerminalUtils::move_cursor(items_start_row + i, left_padding);
 
-            if (i == static_cast<int>(current_selection_index_)) {
-                if (config_.theme.gradient_enabled &&
-                    config_.theme.gradient_preset != extras::GradientPreset::NONE()) {
-                    std::cout << t_content;
-
-                    apply_gradient_text(text, items_start_row + i, centered_col);
-                } else if (config_.theme.use_colors) {
-                    TerminalUtils::set_color(config_.theme.accent_color);
-                    std::cout << t_content;
-                    TerminalUtils::reset_formatting();
-                } else {
-                    std::cout << t_content;
-                }
+            if (const bool is_selected = (i == static_cast<int>(current_selection_index_)); is_selected &&
+                config_.theme.gradient_enabled && config_.theme.gradient_preset != extras::GradientPreset::NONE()) {
+                apply_gradient_text(text, items_start_row + i, centered_col);
+            } else if (is_selected && config_.theme.use_colors) {
+                TerminalUtils::set_color(config_.theme.accent_color);
+                std::cout << t_content;
+                TerminalUtils::reset_formatting();
             } else {
                 std::cout << t_content;
             }
@@ -760,14 +754,14 @@ namespace tui {
 
             if (i - first != current_selection_index_) {
                 std::cout << content;
-            } else if (config_.theme.use_colors) {
+            } else if (config_.theme.gradient_enabled &&
+                       config_.theme.gradient_preset != extras::GradientPreset::NONE()) {
+                apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)), centered_col);
+            } else {
                 TerminalUtils::set_color(config_.theme.accent_color);
                 std::cout << content;
                 TerminalUtils::reset_formatting();
-            } else {
-                apply_gradient_text(display_text, static_cast<int>(items_start_row + (i - first)), centered_col);
             }
-
         }
     }
 

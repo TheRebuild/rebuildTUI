@@ -45,6 +45,7 @@ set(HEADERS
         include/rebuildTUI/selectable_item.hpp
         include/rebuildTUI/terminal_utils.hpp
         include/rebuildTUI/styles.hpp
+        src/styles.cpp
 )
 
 if (BUILD_LIBRARY)
