@@ -48,7 +48,7 @@ namespace tui::extras {
 
         // Custom presets
         static GradientPreset CUSTOM(uint8_t r, uint8_t g, uint8_t b);
-        static GradientPreset CUSTOM(const std::vector<std::tuple<uint8_t, uint8_t, uint8_t>>& colors);
+        static GradientPreset CUSTOM(const v_styles& colors);
 
         enum class PresetType {
             NONE,
@@ -64,18 +64,17 @@ namespace tui::extras {
         };
 
         [[nodiscard]] PresetType type() const;
-        [[nodiscard]] const std::vector<std::tuple<uint8_t, uint8_t, uint8_t>>& custom_colors() const;
+        [[nodiscard]] const v_styles& custom_colors() const;
 
         bool operator==(const GradientPreset& other) const;
 
     private:
         explicit GradientPreset(const PresetType type) : type_(type) {}
-        explicit GradientPreset(const PresetType type,
-                                std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> custom_colors) :
+        explicit GradientPreset(const PresetType type, v_styles custom_colors) :
             type_(type), custom_colors_(std::move(custom_colors)) {};
 
         PresetType type_;
-        std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> custom_colors_;
+        v_styles custom_colors_;
     };
 
 
@@ -92,9 +91,7 @@ namespace tui::extras {
 
         static std::vector<GradientColor> from_preset(const GradientPreset& preset, int steps);
 
-        [[nodiscard]] std::tuple<uint8_t, uint8_t, uint8_t> get_color() const {
-            return std::make_tuple(this->r_, this->g_, this->b_);
-        };
+        [[nodiscard]] color get_color() const { return std::make_tuple(this->r_, this->g_, this->b_); };
 
     private:
         uint8_t r_;
