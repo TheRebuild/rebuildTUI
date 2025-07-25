@@ -175,7 +175,7 @@ namespace tui {
 #endif
     }
 
-    void TerminalUtils::set_color(tui_extras::AccentColor color) {
+    void TerminalUtils::set_color(extras::AccentColor color) {
 #ifdef _WIN32
         if (hConsole != INVALID_HANDLE_VALUE) {
             WORD attributes = 0;
@@ -235,7 +235,7 @@ namespace tui {
             SetConsoleTextAttribute(hConsole, attributes);
         }
 #else
-        std::cout << std::format("\033[{}m", (color == tui_extras::AccentColor::RESET) ? 0 : static_cast<int>(color));
+        std::cout << std::format("\033[{}m", (color == extras::AccentColor::RESET) ? 0 : static_cast<int>(color));
 
         flush();
 #endif
@@ -250,7 +250,7 @@ namespace tui {
         flush();
     }
 
-    void TerminalUtils::set_color_rgb(const tui_extras::GradientColor color) {
+    void TerminalUtils::set_color_rgb(const extras::GradientColor color) {
 #ifdef _WIN32
         if (!is_wt) {
             return;

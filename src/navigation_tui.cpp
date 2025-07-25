@@ -506,7 +506,7 @@ namespace tui {
         std::string top_left, top_right, bottom_left, bottom_right, horizontal, vertical;
 
         switch (config_.theme.border_style) {
-        case tui_extras::BorderStyle::ROUNDED:
+        case extras::BorderStyle::ROUNDED:
             top_left = "╭";
             top_right = "╮";
             bottom_left = "╰";
@@ -514,7 +514,7 @@ namespace tui {
             horizontal = "─";
             vertical = "│";
             break;
-        case tui_extras::BorderStyle::DOUBLE:
+        case extras::BorderStyle::DOUBLE:
             top_left = "╔";
             top_right = "╗";
             bottom_left = "╚";
@@ -522,7 +522,7 @@ namespace tui {
             horizontal = "═";
             vertical = "║";
             break;
-        case tui_extras::BorderStyle::SHARP:
+        case extras::BorderStyle::SHARP:
             top_left = "┌";
             top_right = "┐";
             bottom_left = "└";
@@ -530,7 +530,7 @@ namespace tui {
             horizontal = "─";
             vertical = "│";
             break;
-        case tui_extras::BorderStyle::ASCII:
+        case extras::BorderStyle::ASCII:
         default:
             top_left = "+";
             top_right = "+";
@@ -650,7 +650,7 @@ namespace tui {
             return;
         }
 
-        auto gradient = tui_extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
+        auto gradient = extras::GradientColor::from_preset(config_.theme.gradient_preset, steps);
 
         if (config_.theme.gradient_randomize) {
             std::ranges::shuffle(gradient, std::mt19937(std::random_device()()));
@@ -703,7 +703,7 @@ namespace tui {
 
             if (i == static_cast<int>(current_selection_index_)) {
                 if (config_.theme.gradient_enabled &&
-                    config_.theme.gradient_preset != tui_extras::GradientPreset::NONE()) {
+                    config_.theme.gradient_preset != extras::GradientPreset::NONE()) {
                     std::cout << t_content;
 
                     apply_gradient_text(text, items_start_row + i, centered_col);
@@ -986,7 +986,7 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_gradient_preset(const tui_extras::GradientPreset &preset) {
+    NavigationBuilder &NavigationBuilder::theme_gradient_preset(const extras::GradientPreset &preset) {
         config_.theme.gradient_preset = preset;
         return *this;
     }
@@ -996,12 +996,12 @@ namespace tui {
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_border_style(const tui_extras::BorderStyle &style) {
+    NavigationBuilder &NavigationBuilder::theme_border_style(const extras::BorderStyle &style) {
         config_.theme.border_style = style;
         return *this;
     }
 
-    NavigationBuilder &NavigationBuilder::theme_accent_color(const tui_extras::AccentColor &color) {
+    NavigationBuilder &NavigationBuilder::theme_accent_color(const extras::AccentColor &color) {
         config_.theme.accent_color = color;
         return *this;
     }
@@ -1146,7 +1146,7 @@ namespace tui {
         config_.theme.use_colors = false;
         config_.theme.selected_prefix = "* ";
         config_.theme.unselected_prefix = "  ";
-        config_.theme.border_style = tui_extras::BorderStyle::ASCII;
+        config_.theme.border_style = extras::BorderStyle::ASCII;
         return *this;
     }
 
@@ -1155,7 +1155,7 @@ namespace tui {
         config_.theme.use_colors = true;
         config_.theme.selected_prefix = "✓ ";
         config_.theme.unselected_prefix = "○ ";
-        config_.theme.border_style = tui_extras::BorderStyle::ROUNDED;
+        config_.theme.border_style = extras::BorderStyle::ROUNDED;
         return *this;
     }
 
@@ -1164,7 +1164,7 @@ namespace tui {
         config_.theme.use_colors = false;
         config_.theme.selected_prefix = "[X] ";
         config_.theme.unselected_prefix = "[ ] ";
-        config_.theme.border_style = tui_extras::BorderStyle::DOUBLE;
+        config_.theme.border_style = extras::BorderStyle::DOUBLE;
         return *this;
     }
 
@@ -1173,8 +1173,8 @@ namespace tui {
         config_.theme.use_colors = true;
         config_.theme.selected_prefix = "● ";
         config_.theme.unselected_prefix = "○ ";
-        config_.theme.border_style = tui_extras::BorderStyle::ROUNDED;
-        config_.theme.accent_color = tui_extras::AccentColor::BLUE;
+        config_.theme.border_style = extras::BorderStyle::ROUNDED;
+        config_.theme.accent_color = extras::AccentColor::BLUE;
 
         return *this;
     }

@@ -101,11 +101,11 @@ namespace tui {
         static void show_cursor();
         static std::pair<int, int> get_terminal_size();
         static void set_color(Color color);
-        static void set_color(tui_extras::AccentColor color);
+        static void set_color(extras::AccentColor color);
 
         // Gradient
         static void set_color_rgb(uint8_t r, uint8_t g, uint8_t b);
-        static void set_color_rgb(tui_extras::GradientColor color);
+        static void set_color_rgb(extras::GradientColor color);
 
         static void set_style(Style style);
         static void reset_formatting();

@@ -6,7 +6,7 @@
 #include <tuple>
 #include <vector>
 
-namespace tui_extras {
+namespace tui::extras {
     using color = std::tuple<uint8_t, uint8_t, uint8_t>;
     using v_styles = std::vector<color>;
 
@@ -208,4 +208,4 @@ namespace tui_extras {
         uint8_t g_;
         uint8_t b_;
     };
-} // namespace tui_extras
+} // namespace tui::extras
